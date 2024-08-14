@@ -52,7 +52,7 @@ Displacement of Monster Glyphs in relation to bitmap
 |Chromatic Dragon| 357   |  367   |  +10  |
 |Goblin King | -     |  368   |  -    |
 |Cyclops   | 358   |  369   |  +11  |
-|Neanderthal| 369   |  380   |  -    |
-|High Elf  | -     |  381   |  +11  |
-|Attendant | 370   |  382   |  -    |
+|Neanderthal| 369   |  380   |  +11    |
+|High Elf  | -     |  381   |  -  |
+|Attendant | 370   |  382   |  +12    |
 |Apprentice| 380   |  392   |  +12  |
