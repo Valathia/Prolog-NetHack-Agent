@@ -578,9 +578,13 @@ Closed Door Protocol_1: Door Broke, new protocol!
 Closed Door Protocol_1: Door didnt break, LOCK
 Closed Door Protocol_1: Failsafe - Search End
 
+#kicking empty spaces after door simply opened
 
+got stuck in execute_action_tunnel pushing a boulder in confirm action when he shouldn't be trying to get into the boulder's space
 
+when there's a final action that sends the game back to game_run, Astar starts lagging with the search space
 
+In tunnels goes an exxtra step and bumps into stone
 torchbg
 <a href="https://www.freepik.com/free-vector/castle-dungeon-interior-with-torches_37471973.htm#fromView=search&page=5&position=26&uuid=4d722681-a137-436f-944c-1fc7be20f61c">Image by upklyak on Freepik</a>
 mine tunnel

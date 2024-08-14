@@ -79,13 +79,13 @@ code(2422, 'trap').
 % 278-279 - peaceful - watch and watch captain
 %monsters start at 0
 code(Code, 'monster'):- Code < 267.
-code(Code,'human'):- Code <=272.  %shopkeeper and the like 267-272
+code(Code,'human'):- Code =< 272.  %shopkeeper and the like 267-272
 code(278,'human'). %watch
 code(279,'human'). %watch captain
 code(Code, 'monster'):- Code < 342.
-code(Code,'human'):- Code <= 354. %from 342-354 Lord Carnarvon -Neferet the Green quest givers
-code(Code,'monster'):- Code <= 366.  % Quest nemesis 355-366
-code(Code, 'human'):- Code <= 380. % quest guardians 367-380
+code(Code,'human'):- Code =< 354. %from 342-354 Lord Carnarvon -Neferet the Green quest givers
+code(Code,'monster'):- Code =< 366.  % Quest nemesis 355-366
+code(Code, 'human'):- Code =< 380. % quest guardians 367-380
 %code(Code, 'food'):- Code >= 1144, Code =< 1524. %these are actually corpses --- need to take out the bad food - most corpses shouldn't be eaten...
 code(Code, 'food'):- Code >= 2145, Code =< 2177.
 code(_, 'misc').

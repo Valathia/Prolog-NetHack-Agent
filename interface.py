@@ -20,7 +20,7 @@ STAT_KEYS = [
     'Score',        #score
     'hp',           #hitpoints
     'maxhp',        #max_hitpoints
-    'Dlvl',        #depth
+    'Dlvl',        #depthgit remote add origin
     'gold',         #gold
     'energy',       #energy
     'maxenergy',    #max_energy

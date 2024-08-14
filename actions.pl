@@ -1,7 +1,7 @@
 % action list
 /**
  * Executes a step in the environment based on the given action.
- 
+
  * @param ENV The game environment object.
  * @param RES The result after performing the step.
  */

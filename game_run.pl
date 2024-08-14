@@ -26,7 +26,7 @@ valid('ladderdown').
 valid('misc').
 valid('floornovis').
 valid('stairsup').            % <     staircase going up
-valid('player_monk').
+%valid('player_monk').
 valid('cat').
 valid('dog').
 valid('gold').
@@ -40,6 +40,8 @@ valid('horcloseddrawbdrige').
 valid('food').
 valid('boulder').
 
+intact_door('door').
+intact_door('doorop').
 
 /**
  * Goals in the game environment.
@@ -174,8 +176,8 @@ get_elem(MATRIX,INDEX_ROW,INDEX_COL,ELEM) :-
  * @param INFO The game info.
  * @param IsRunning True if the game is running, false otherwise.
  */
-is_game_running(false,true).
-is_game_running(true,false).
+is_game_running(DONE,true):- arg(1,DONE,false).
+is_game_running(DONE,false):- arg(1,DONE,true).
 %is_game_running(DONE, true):- format('is_game_running True ~n'),INFO.end_status == 0.
 %is_game_running(DONE, false):- format('is_game_running False ~n'),INFO.end_status == 1.
 
@@ -226,7 +228,7 @@ confirm_step(_,TEMP_DATA,X2,Y2,_):-
  */
 confirm_step(ENV,_,X2,Y2,ACTION):-
     move(ACTION, ENV, TEMP_DATA),
-    %renderMap(ENV),
+    renderMap(ENV),
     confirm_step(ENV,TEMP_DATA,X2,Y2,ACTION).
 
 
@@ -252,12 +254,12 @@ execute_action(ENV, [(X1,Y1),(X2,Y2)], GOAL, DATA):-
 execute_action(ENV, [(X1,Y1),(X2,Y2)|T], GOAL, WORLD_DATA):- 
     MOVE_X is X2 - X1,
     MOVE_Y is Y2 - Y1,
-    move_py(MOVE_X,MOVE_Y,ACTION),
-    move(ACTION, ENV, TEMP_DATA),
+    move_py(MOVE_X,MOVE_Y,ACTION), %translates MOVE_X & MOVE_Y into a direction
+    move(ACTION, ENV, TEMP_DATA),  %moves in the corresponding direction
     %renderMap(ENV),
-    confirm_step(ENV,TEMP_DATA,X2,Y2,ACTION),
-    asserta(floor_locked(X1,Y2)),
-    execute_action(ENV,[(X2,Y2)|T], GOAL, WORLD_DATA),!.
+    confirm_step(ENV,TEMP_DATA,X2,Y2,ACTION), %confirms if the player is in the new square, if he is not, redo the action
+    asserta(floor_locked(X1,Y2)),             
+    execute_action(ENV,[(X2,Y2)|T], GOAL, WORLD_DATA),!. %execute next action
 
 
 /**
@@ -302,7 +304,7 @@ check_valid((X,Y), Matrix) :-
 
 /**
  * Finds neighboring positions of a given position within the matrix.
- *
+ *  neighbors of floortunel can be diagonal, but they can't, if the neighbor is a dor it can't be diagonal
  * @param X The X-coordinate of the position.
  * @param Y The Y-coordinate of the position.
  * @param Matrix The matrix representing the game map.
@@ -312,23 +314,8 @@ neighbors((X, Y), Matrix, Neighbors) :-
     get_elem(Matrix,X,Y,GOAL),
     neighbors((X, Y), Matrix, Neighbors, GOAL).
 
-neighbors((X, Y), Matrix, Neighbors, 'floortunel') :-
-    findall((NX, NY),
-            (   (NX is X + 1, NY is Y);
-                (NX is X - 1, NY is Y);
-                (NX is X, NY is Y + 1);
-                (NX is X, NY is Y - 1);
-                (NX is X + 1, NY is Y + 1);
-                (NX is X - 1, NY is Y - 1);
-                (NX is X + 1, NY is Y - 1);
-                (NX is X - 1, NY is Y + 1)
-                ),
-            AllNeighbors),
-    include({Matrix}/[Pos]>>in_bounds(Pos, Matrix), AllNeighbors, InBoundsNeighbors),
-    include({Matrix}/[Pos]>>check_valid(Pos, Matrix), InBoundsNeighbors, Neighbors).
-
-
-neighbors((X, Y), Matrix, Neighbors, _) :-
+neighbors((X, Y), Matrix, Neighbors, CUR) :-
+    intact_door(CUR),
     findall((NX, NY),
             (   (NX is X + 1, NY is Y);
                 (NX is X - 1, NY is Y);
@@ -337,6 +324,24 @@ neighbors((X, Y), Matrix, Neighbors, _) :-
             AllNeighbors),
     include({Matrix}/[Pos]>>in_bounds(Pos, Matrix), AllNeighbors, InBoundsNeighbors),
     include({Matrix}/[Pos]>>check_valid(Pos, Matrix), InBoundsNeighbors, Neighbors).
+
+neighbors((X, Y), Matrix, Neighbors, _) :-
+    findall((NX, NY),
+            (   (NX is X + 1, NY is Y);
+                (NX is X - 1, NY is Y);
+                (NX is X, NY is Y + 1);
+                (NX is X, NY is Y - 1);
+                (NX is X + 1, NY is Y + 1,get_elem(Matrix,NX,NY,Elem),\+intact_door(Elem));
+                (NX is X - 1, NY is Y - 1,get_elem(Matrix,NX,NY,Elem),\+intact_door(Elem));
+                (NX is X + 1, NY is Y - 1,get_elem(Matrix,NX,NY,Elem),\+intact_door(Elem));
+                (NX is X - 1, NY is Y + 1,get_elem(Matrix,NX,NY,Elem),\+intact_door(Elem))
+                ),
+            AllNeighbors),
+    include({Matrix}/[Pos]>>in_bounds(Pos, Matrix), AllNeighbors, InBoundsNeighbors),
+    include({Matrix}/[Pos]>>check_valid(Pos, Matrix), InBoundsNeighbors, Neighbors).
+
+
+
 
 
 /**
@@ -471,21 +476,14 @@ renderMap(ENV):- sleep(0.25), tty_clear, py_call(ENV:render()), sleep(0.25).
  * @param FIRST_MOVE Flag indicating if this is the first move.
  * @param GAME_RUNNING Flag indicating if the game is still running.
  */
-game_run(_, _, _, false):- format('GAME OVER: ~w~n', [true]).
+game_run(_, _, false):- format('GAME OVER: ~w~n', [true]).
 
-%vamos ter que aceitar que isto para correr na 1ª passagem tem que fingir que o game is running e pronto. 
-game_run(ENV, [], false, true):-
-move('_SEARCH_', ENV, WORLD_DATA),
-%get_info_from_map(WORLD_DATA, _, _, _, _),   
-is_game_running(false, GAME_RUNNING),        
-game_run(ENV, WORLD_DATA, true, GAME_RUNNING).           
-
-game_run(ENV, PREV_WORLD_DATA, true, true):- 
-calculate_best_action(PREV_WORLD_DATA, GOAL, ACTION),!,
-execute_action(ENV, ACTION, GOAL, WORLD_DATA),
-get_info_from_map(WORLD_DATA, _, _, DONE, _), 
-is_game_running(DONE, GAME_RUNNING),         
-game_run(ENV, WORLD_DATA, true, GAME_RUNNING).
+game_run(ENV, PREV_WORLD_DATA, true):- 
+    calculate_best_action(PREV_WORLD_DATA, GOAL, ACTION),!,
+    execute_action(ENV, ACTION, GOAL, WORLD_DATA),
+    get_info_from_map(WORLD_DATA, _, _, DONE, _),
+    is_game_running(DONE, GAME_RUNNING),
+    game_run(ENV, WORLD_DATA, GAME_RUNNING).
 
 /**
  * Initializes the game environment by creating a new instance and resetting it.
@@ -506,5 +504,5 @@ game_run(ENV, WORLD_DATA, true, GAME_RUNNING).
  * Starts the game environment and initiates the game loop.
  */
 gameStart(ENV):- %game_innit(ENV),
-    game_run(ENV, [], false, true),
-    move('_SEARCH_', ENV, _).
+    move('_SEARCH_', ENV, WORLD_DATA),
+    game_run(ENV, WORLD_DATA, true).

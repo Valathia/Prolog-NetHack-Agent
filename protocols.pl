@@ -77,14 +77,14 @@ isFloorOnce(X,Y):- floor_locked(X,Y).
  */
 closed_door_protocol(ENV,[(X1,Y1),(X2,Y2)],DATA):-
     format('Closed Door Protocol: Break it! ~n'),
-    py_call(prolog_gui:output_text('Closed Door Protocol: Break it! \n')),
+    py_call(prolog_gui:output_text('Closed Door Protocol: Break it!')),
     MOVE_X is X2 - X1,
     MOVE_Y is Y2 - Y1,
     move_py(MOVE_X,MOVE_Y,ACTION),
     move('_KICK_',ENV,_),
-    %renderMap(ENV),
+    renderMap(ENV),
     move(ACTION, ENV, TEMP_DATA),
-    %renderMap(ENV),
+    renderMap(ENV),
     get_info_from_map(TEMP_DATA, OBS, _, _, _),
     translate_glyphs(OBS.glyphs, TRANSLATED_MATRIX),
     get_elem(TRANSLATED_MATRIX,X2,Y2,ELEM),
@@ -103,10 +103,10 @@ closed_door_protocol(ENV,[(X1,Y1),(X2,Y2)],DATA):-
  */
 closed_door_protocol_1(ENV,[(_,_),(X2,Y2)],ACTION,ELEM,DATA):-
     format('Closed Door Protocol_1: Door Broke, new protocol! ~n'),
-    py_call(prolog_gui:output_text('Closed Door Protocol_1: Door Broke, new protocol! \n')),
+    py_call(prolog_gui:output_text('Closed Door Protocol_1: Door Broke, new protocol!')),
     \+ closed_door(ELEM),
     move(ACTION, ENV, _),
-    %renderMap(ENV),
+    renderMap(ENV),
     protocol(ENV,(X2,Y2),ACTION,ELEM,DATA).
 
 
@@ -121,7 +121,7 @@ closed_door_protocol_1(ENV,[(_,_),(X2,Y2)],ACTION,ELEM,DATA):-
  */
 closed_door_protocol_1(ENV,[(_,_),(X2,Y2)],_,ELEM,DATA):-
     format('Closed Door Protocol_1: Door didnt break, LOCK ~n'),
-    py_call(prolog_gui:output_text('Closed Door Protocol_1: Door didnt break, LOCK \n')),
+    py_call(prolog_gui:output_text('Closed Door Protocol_1: Door didnt break, LOCK')),
     closed_door(ELEM),
     asserta(locked(X2,Y2)),
     retractall(wayback(_,_)),
@@ -137,13 +137,15 @@ closed_door_protocol_1(ENV,[(_,_),(X2,Y2)],_,ELEM,DATA):-
  */
 closed_door_protocol_1(ENV,[(_,_),(_,_)],_,ELEM,DATA):-
     format('Closed Door Protocol_1: Failsafe - Search End ~n'),
-    py_call(prolog_gui:output_text('Closed Door Protocol_1: Failsafe - Search End \n')),
+    py_call(prolog_gui:output_text('Closed Door Protocol_1: Failsafe - Search End')),
     closed_door(ELEM),
     move('_SEARCH_', ENV, DATA).
 
 
 end_execute_action_tunnel(ENV,DATA) :-
     move('_SEARCH_', ENV, DATA).
+
+
 
 /**
  * Executes an action sequence in the game environment based on the given goal.
@@ -158,7 +160,7 @@ end_execute_action_tunnel(ENV,DATA) :-
 
 execute_action_tunnel(ENV, [(X1,Y1),(X2,Y2)], 'door', DATA):-
     format('Execute_action Last Two Moves - Door ~n'),
-    py_call(prolog_gui:output_text('Execute_action Last Two Moves - Door \n')),
+    py_call(prolog_gui:output_text('Execute_action Last Two Moves - Door')),
     pick_protocol_2(ENV, [(X1,Y1),(X2,Y2)], 'door',' door', DATA).
 
 /**
@@ -174,7 +176,7 @@ execute_action_tunnel(ENV, [(X1,Y1),(X2,Y2)], 'door', DATA):-
 
 execute_action_tunnel(ENV, [(X1,Y1),(X2,Y2)], 'passage', DATA):-
     format('Execute_action Last Two Moves - Passage ~n'),
-    py_call(prolog_gui:output_text('Execute_action Last Two Moves - Passage \n')),
+    py_call(prolog_gui:output_text('Execute_action Last Two Moves - Passage')),
     pick_protocol_2(ENV, [(X1,Y1),(X2,Y2)], 'passage', 'passage', DATA).
 
 /**
@@ -189,7 +191,7 @@ execute_action_tunnel(ENV, [(X1,Y1),(X2,Y2)], 'passage', DATA):-
  */
 execute_action_tunnel(ENV, [(X1,Y1),(X2,Y2)], 'doorop', DATA):-
     format('Execute_action Last Two Moves - Open Door ~n'),
-    py_call(prolog_gui:output_text('Execute_action Last Two Moves - Open Door \n')),
+    py_call(prolog_gui:output_text('Execute_action Last Two Moves - Open Door')),
     pick_protocol_2(ENV, [(X1,Y1),(X2,Y2)], 'doorop', 'doorop' ,DATA).
 
 /**
@@ -204,7 +206,7 @@ execute_action_tunnel(ENV, [(X1,Y1),(X2,Y2)], 'doorop', DATA):-
  */
 execute_action_tunnel(ENV, [(X1,Y1),(X2,Y2)], 'boulder', DATA):-
     format('Execute_action Last Two Moves - BOULDER ~n'),
-    py_call(prolog_gui:output_text('Execute_action Last Two Moves - BOULDER\n')),
+    py_call(prolog_gui:output_text('Execute_action Last Two Moves - BOULDER')),
     boulder_protocol(ENV,[(X1,Y1),(X2,Y2)],'boulder',DATA).
 
 /**
@@ -217,13 +219,13 @@ execute_action_tunnel(ENV, [(X1,Y1),(X2,Y2)], 'boulder', DATA):-
  */
 execute_action_tunnel(ENV, [(X1,Y1),(X2,Y2)], GOAL, DATA):- 
     format('Execute_action: TUNNEL Last Two Moves ~n'),
-    py_call(prolog_gui:output_text('Execute_action Last Two Moves - TUNNEL\n')),
+    py_call(prolog_gui:output_text('Execute_action Last Two Moves - TUNNEL')),
     %pick_protocol_2(ENV,[(X1,Y1),(X2,Y2)], GOAL, GOAL, DATA).
     MOVE_X is X2 - X1,
     MOVE_Y is Y2 - Y1,
     move_py(MOVE_X,MOVE_Y,ACTION),
     move(ACTION, ENV, TEMP_DATA),
-    %renderMap(ENV),
+    renderMap(ENV),
     confirm_step(ENV,TEMP_DATA,X2,Y2,ACTION),
     %retract(wayback(_,_)),
     asserta(wayback(X1,Y1)),
@@ -233,7 +235,7 @@ execute_action_tunnel(ENV, [(X1,Y1),(X2,Y2)], GOAL, DATA):-
 
 execute_action_tunnel(ENV, [(X1,Y1),(X2,Y2)], _, DATA):- 
     format('Execute_action: TUNNEL Last Two Moves - FAILSAFE Retract FAIL (hopefully) ~n'),
-    py_call(prolog_gui:output_text('Execute_action: TUNNEL Last Two Moves - FAILSAFE Retract FAIL (hopefully)\n')),
+    py_call(prolog_gui:output_text('Execute_action: TUNNEL Last Two Moves - FAILSAFE Retract FAIL (hopefully)')),
     %pick_protocol_2(ENV,[(X1,Y1),(X2,Y2)], GOAL, GOAL, DATA).
     move('_SEARCH_', ENV, TEMP_DATA),
     confirm_step_door(TEMP_DATA,X2,Y2),
@@ -241,10 +243,12 @@ execute_action_tunnel(ENV, [(X1,Y1),(X2,Y2)], _, DATA):-
     isFloorOnce(X1,Y1),
     end_execute_action_tunnel(ENV,DATA).
 
-execute_action_tunnel(ENV, _, _, DATA):-
+execute_action_tunnel(ENV, [(_,_),(_,_)], _, DATA):-
     format('Execute_action: TUNNEL Last Two Moves - FAILSAFE BIG FAIL (couldnt confirm move) - Terminate ~n'),
-    py_call(prolog_gui:output_text('Execute_action: TUNNEL Last Two Moves - FAILSAFE BIG FAIL (couldnt confirm move) - Terminate\n')),
+    py_call(prolog_gui:output_text('Execute_action: TUNNEL Last Two Moves - FAILSAFE BIG FAIL (couldnt confirm move) - Terminate')),
     move('_SEARCH_', ENV, DATA).
+
+
 
 /**
  * Recursively executes the action tunnel for a series of coordinates representing the movement path.
@@ -256,13 +260,13 @@ execute_action_tunnel(ENV, _, _, DATA):-
  */
 execute_action_tunnel(ENV, [(X1,Y1),(X2,Y2)|T], GOAL, WORLD_DATA):- 
     format('Execute_action Tunnel List ~n'),
-    py_call(prolog_gui:output_text('Execute_action Tunnel List\n')),
+    py_call(prolog_gui:output_text('Execute_action Tunnel Lists')),
     format('(~w,~w) to (~w,~w)',[X1,Y1,X2,Y2]),
     MOVE_X is X2 - X1,
     MOVE_Y is Y2 - Y1,
     move_py(MOVE_X,MOVE_Y,ACTION),
     move(ACTION, ENV, TEMP_DATA),
-    %renderMap(ENV),
+    renderMap(ENV),
     confirm_step(ENV,TEMP_DATA,X2,Y2,ACTION),
     asserta(wayback(X1,Y1)),
     isFloorOnce(X1,Y1),
@@ -277,13 +281,14 @@ execute_action_tunnel(ENV, [(X1,Y1),(X2,Y2)|T], GOAL, WORLD_DATA):-
  */
 tunneling_protocol(ENV,DATA):-
     format('Tunneling Protocol - CHOO CHOO ~n'),
-    py_call(prolog_gui:output_text('Tunneling Protocol - CHOO CHOO\n')),
+    py_call(prolog_gui:output_text('Tunneling Protocol - CHOO CHOO')),
     move('_SEARCH_', ENV, TEMP_DATA),
     get_info_from_map(TEMP_DATA, OBS, _, _, _),
     translate_glyphs(OBS.glyphs, TRANSLATED_MATRIX),
     get_Player_info(OBS.blstats, POS_COL, POS_ROW, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _),
     get_next_move(TRANSLATED_MATRIX, POS_ROW, POS_COL, GOAL, SOL),
     %get_elem(TRANSLATED_MATRIX,X,Y,GOAL),
+    format('Player  row:~w col:~w ',[POS_COL,POS_ROW]),
     execute_action_tunnel(ENV, SOL, GOAL, DATA).
 
 
@@ -295,7 +300,7 @@ tunneling_protocol(ENV,DATA):-
  */
 tunneling_protocol(ENV,DATA):-
     format('Tunneling failsafe, retract all - End ~n'),
-    py_call(prolog_gui:output_text('Tunneling failsafe, retract all - End\n')),
+    py_call(prolog_gui:output_text('Tunneling failsafe, retract all - End')),
     move('_SEARCH_', ENV, DATA),
     retractall(wayback(_,_)).
 
@@ -308,15 +313,15 @@ tunneling_protocol(ENV,DATA):-
  */
 go_down_stairs(ENV,DATA):-
     format('Go Down Stairs Protocol - RETRACT ALL . End ~n'),
-    py_call(prolog_gui:output_text('Go Down Stairs Protocol - RETRACT ALL . End\n')),
+    py_call(prolog_gui:output_text('Go Down Stairs Protocol - RETRACT ALL . End')),
     move('_DOWN_',ENV,DATA),
     retractall(wayback(_,_)),
     retractall(once(_,_)),
     retractall(locked(_,_)),   
     retractall(floor_once(_,_)),
     retractall(floor_twice(_,_)),
-    retractall(floor_locked(_,_)).
-    %renderMap(ENV).
+    retractall(floor_locked(_,_)),
+    renderMap(ENV).
 
 /**
  * Handles Eating items on the floor in the game environment.
@@ -326,11 +331,11 @@ go_down_stairs(ENV,DATA):-
  */
 eat_protocol(ENV,DATA):-
     format('Eat Protocol . End ~n'),
-    py_call(prolog_gui:output_text('Eat Protocol . End\n')),
+    py_call(prolog_gui:output_text('Eat Protocol . End - has a retract')),
     retractall(wayback(_,_)),
     move('_EAT_',ENV,_),
-    move('_NW_', ENV, DATA).
-    %renderMap(ENV).
+    move('_NW_', ENV, DATA),
+    renderMap(ENV).
 
 /**
  * Recursively pushes a boulder down a tunnel untill it reaches a dead end and cannot make further movements.
@@ -342,12 +347,12 @@ eat_protocol(ENV,DATA):-
  */
 boulder_protocol(ENV,[(X1,Y1),(X2,Y2)],GOAL,DATA):-
     format('BOULDER PROTOCOL ~n'),
-    py_call(prolog_gui:output_text('BOULDER PROTOCOL\n')),
+    py_call(prolog_gui:output_text('BOULDER PROTOCOL')),
     MOVE_X is X2 - X1,
     MOVE_Y is Y2 - Y1,
     move_py(MOVE_X,MOVE_Y,ACTION),
     move(ACTION, ENV, TEMP_DATA),
-    %renderMap(ENV),
+    renderMap(ENV),
     confirm_step_door(TEMP_DATA,X2,Y2),
     asserta(wayback(X1,Y1)),
     NEWX2 is X2 + MOVE_X,
@@ -364,7 +369,7 @@ boulder_protocol(ENV,[(X1,Y1),(X2,Y2)],GOAL,DATA):-
  */
 boulder_protocol(ENV,[(_,_),(X2,Y2)],_,DATA):-
     format('Boulder Protocol Lock Boulder - Search End ~n'),
-    py_call(prolog_gui:output_text('Boulder Protocol Lock Boulder - Search End\n')),
+    py_call(prolog_gui:output_text('Boulder Protocol Lock Boulder - Search End - theres a retract here')),
     asserta(locked(X2,Y2)),
     retractall(wayback(_,_)),
     move('_SEARCH_', ENV, DATA).
@@ -377,7 +382,7 @@ boulder_protocol(ENV,[(_,_),(X2,Y2)],_,DATA):-
  */
 protocol(ENV,_,_,'stairsdown',DATA):-
     format('Protocol Call: Go Down Stairs ~n'),
-    py_call(prolog_gui:output_text('Protocol Call: Go Down Stairs \n')),
+    py_call(prolog_gui:output_text('Protocol Call: Go Down Stairs')),
     go_down_stairs(ENV,DATA).
 
 /**
@@ -388,32 +393,31 @@ protocol(ENV,_,_,'stairsdown',DATA):-
  */
 protocol(ENV,_,_,'food',DATA):-
     format('Protocol Call: Eat Protocol ~n'),
-    py_call(prolog_gui:output_text('Protocol Call: Eat Protocol \n')),
+    py_call(prolog_gui:output_text('Protocol Call: Eat Protocol')),
     eat_protocol(ENV,DATA).
 
 protocol(ENV,_,_,'monster',DATA):-
     format('Protocol Call: Monster ~n'),
-    py_call(prolog_gui:output_text('Protocol Call: Monster \n')),
-    retractall(wayback(_,_)),
+    py_call(prolog_gui:output_text('Protocol Call: Monster')),
+    %retractall(wayback(_,_)),
     move('_SEARCH_', ENV, DATA).
 
 protocol(ENV,_,_,'monster',DATA):-
     format('Protocol Call: FAILSAFE Monster ~n'),
-    py_call(prolog_gui:output_text('Protocol Call: FAILSAFE Monster\n')),
+    py_call(prolog_gui:output_text('Protocol Call: FAILSAFE Monster - retract all probably failed')),
     retract(wayback(_,_)),
     move('_SEARCH_', ENV, DATA).
 
 protocol(ENV,_,_,'monster',DATA):-
     format('Protocol Call: FAILSAFE 2 Monster ~n'),
-    py_call(prolog_gui:output_text('Protocol Call: FAILSAFE 2 Monster \n')),
+    py_call(prolog_gui:output_text('Protocol Call: FAILSAFE 2 Monster - retract probably failed.')),
     move('_SEARCH_', ENV, DATA).
-
 
 protocol(ENV,(X,Y),ACTION,'floortunel',DATA):-
     format('Protocol Call: floortunel - Tunneling  ~n'),
-    py_call(prolog_gui:output_text('Protocol Call: floortunel - Tunneling  \n')),
+    py_call(prolog_gui:output_text('Protocol Call: floortunel - Tunneling')),
     move(ACTION,ENV,_),
-    %renderMap(ENV),
+    renderMap(ENV),
     asserta(wayback(X,Y)),
     isOnce(X,Y),
     tunneling_protocol(ENV,DATA).
@@ -429,11 +433,11 @@ protocol(ENV,(X,Y),ACTION,'floortunel',DATA):-
  */
 protocol(ENV,(X,Y),ACTION,GOAL,DATA):-
     format('Protocol Call: Open Door/ Passage - Tunneling  ~n'),
-    py_call(prolog_gui:output_text('Protocol Call: Open Door/ Passage - Tunneling \n')),
+    py_call(prolog_gui:output_text('Protocol Call: Open Door/ Passage - Tunneling')),
     door_opened(GOAL),
     retractall(wayback(_,_)),
     move(ACTION,ENV,_),
-    %renderMap(ENV),
+    renderMap(ENV),
     asserta(wayback(X,Y)),
     isOnce(X,Y),
     tunneling_protocol(ENV,DATA).
@@ -448,8 +452,9 @@ protocol(ENV,(X,Y),ACTION,GOAL,DATA):-
  * @param DATA The resulting game data after handling the blocked door.
  */
 protocol(ENV,_,_,_,DATA):-
-    format('Protocol Call: Faill safe Tunneling ~n'),
-    py_call(prolog_gui:output_text('Protocol Call: Faill safe Tunneling \n')),
+    format('Protocol Call: Fail safe Tunneling ~n'),
+    py_call(prolog_gui:output_text('Protocol Call: Fail safe Tunneling')),
+    retractall(wayback(_,_)),
     tunneling_protocol(ENV,DATA).
 
 /**
@@ -461,7 +466,7 @@ protocol(ENV,_,_,_,DATA):-
  */
 protocol(ENV,_,_,_,DATA):-
     format('Protocol Call: failsafe retract wayback - search_end ~n'),
-    py_call(prolog_gui:output_text('Protocol Call: failsafe retract wayback - search_end \n')),
+    py_call(prolog_gui:output_text('Protocol Call: failsafe retract wayback - search_end')),
     retract(wayback(_,_)),
     move('_SEARCH_', ENV, DATA).
 
@@ -473,7 +478,7 @@ protocol(ENV,_,_,_,DATA):-
  */
 protocol(ENV,_,_,_,DATA):-
     format('Protocol Call: failsafe 2 - search_end ~n'),
-    py_call(prolog_gui:output_text('Protocol Call: failsafe 2 - search_end\n')),
+    py_call(prolog_gui:output_text('Protocol Call: failsafe 2 - search_end')),
     move('_SEARCH_', ENV, DATA).
 
 
@@ -489,16 +494,16 @@ protocol(ENV,_,_,_,DATA):-
  */
 pick_protocol_2(ENV,[(X1,Y1),(X2,Y2)],'door',_,DATA):-
     format('Pick_Protocol_2: Closed Door  ~n'),
-    py_call(prolog_gui:output_text('Pick_Protocol_2: Closed Door\n')),
+    py_call(prolog_gui:output_text('Pick_Protocol_2: Closed Door')),
     MOVE_X is X2 - X1,
     MOVE_Y is Y2 - Y1,
     move_py(MOVE_X,MOVE_Y,ACTION),
-    %renderMap(ENV),
+    renderMap(ENV),
     move(ACTION, ENV, _),
     move(ACTION, ENV, TEMP_DATA),
     confirm_step_door(TEMP_DATA,X2,Y2),
-    %renderMap(ENV),
-    protocol(ENV,(X2,Y2),ACTION,'passage',DATA).
+    renderMap(ENV),
+    protocol(ENV,(X2,Y2),ACTION,'passage',DATA).        %if the door opened, the new glyph is now an open door or passage , protocol picked will be passage
 
 /**
  * Protocol for executing actions based on game objectives when encountering closed doors that won't open.
@@ -511,9 +516,9 @@ pick_protocol_2(ENV,[(X1,Y1),(X2,Y2)],'door',_,DATA):-
  * @param DATA The resulting game data after executing the pick protocol.
  */
 pick_protocol_2(ENV,[(X1,Y1),(X2,Y2)],'door',_,DATA):-
-    format(' Pick_Protocol_2: Closed Door - Didnt open ~n'),
-    py_call(prolog_gui:output_text(' Pick_Protocol_2: Closed Door - Didnt open \n')),
-    closed_door_protocol(ENV,[(X1,Y1),(X2,Y2)],DATA).
+    format('Pick_Protocol_2: Closed Door - Didnt open ~n'),
+    py_call(prolog_gui:output_text('Pick_Protocol_2: Closed Door - Didnt open')),
+    closed_door_protocol(ENV,[(X1,Y1),(X2,Y2)],DATA).                   %if door failed to open closed_door_protocol needs to be called (to kick it)
 
 /**
  * Protocol for executing actions based on game objectives when encountering boulders.
@@ -527,19 +532,19 @@ pick_protocol_2(ENV,[(X1,Y1),(X2,Y2)],'door',_,DATA):-
 
 pick_protocol_2(ENV,[(X1,Y1),(X2,Y2)],'boulder',_,DATA):-
     format('Pick_Protocol_2: Boulder ~n'),
-    py_call(prolog_gui:output_text(' Pick_Protocol_2: Boulder  \n')),
-    boulder_protocol(ENV,[(X1,Y1),(X2,Y2)],DATA).
+    py_call(prolog_gui:output_text('Pick_Protocol_2: Boulder')),
+    boulder_protocol(ENV,[(X1,Y1),(X2,Y2)],'boulder',DATA).
 
 
 pick_protocol_2(ENV,[(X1,Y1),(X2,Y2)],'monster',_,DATA):-
     format('Pick_Protocol_2: Monster ~n'),
-    py_call(prolog_gui:output_text('Pick_Protocol_2: Monster \n')),
+    py_call(prolog_gui:output_text('Pick_Protocol_2: Monster')),
     MOVE_X is X2 - X1,
     MOVE_Y is Y2 - Y1,
     move_py(MOVE_X,MOVE_Y,ACTION),
     move(ACTION, ENV, TEMP_DATA),
-    confirm_step(ENV,TEMP_DATA,X2,Y2,ACTION),
-    %renderMap(ENV),
+    confirm_step(ENV,TEMP_DATA,X2,Y2,ACTION),               %confirming the step when it's a monster ensures the agent will try to kill the monster, when they're able to step in the same square it means the monster died
+    renderMap(ENV),
     protocol(ENV,(X2,Y2),ACTION,'monster',DATA).
     %pick_protocol_2(ENV,[(X1,Y1),(X2,Y2)],'fail',_,DATA).
 
@@ -558,7 +563,7 @@ pick_protocol_2(ENV,[(X1,Y1),(X2,Y2)],'monster',_,DATA):-
 
 pick_protocol_2(ENV,_,'fail',_,DATA):-
     format('Pick_Protocol_2: FAIL - Failsafe into Return ~n'),
-    py_call(prolog_gui:output_text('Pick_Protocol_2: FAIL - Failsafe into Return \n')),
+    py_call(prolog_gui:output_text('Pick_Protocol_2: FAIL - Failsafe into Return')),
     retractall(wayback(_,_)),
     move('_SEARCH_', ENV, DATA).
     %closed_door_protocol(ENV,[(X1,Y1),(X2,Y2)],DATA).
@@ -566,31 +571,31 @@ pick_protocol_2(ENV,_,'fail',_,DATA):-
 
 pick_protocol_2(ENV,_,'fail',_,DATA):-
     format('Pick_Protocol_2: FAIL TM - retract all failed, Failsafe into Return ~n'),
-    py_call(prolog_gui:output_text('Pick_Protocol_2: FAIL TM - retract all failed, Failsafe into Return  \n')),
+    py_call(prolog_gui:output_text('Pick_Protocol_2: FAIL TM - retract all failed, Failsafe into Return')),
     move('_SEARCH_', ENV, DATA).
 
 pick_protocol_2(ENV,[(X1,Y1),(X2,Y2)],GOAL,_,DATA):-
     format('Pick_Protocol_2: Opened Door, Passages, Food and Stairdown  ~n'),
-    py_call(prolog_gui:output_text('Pick_Protocol_2: Opened Door, Passages, Food and Stairdown   \n')),
+    py_call(prolog_gui:output_text('Pick_Protocol_2: Opened Door, Passages, Food and Stairdown')),
     door_opened(GOAL),
     MOVE_X is X2 - X1,
     MOVE_Y is Y2 - Y1,
     move_py(MOVE_X,MOVE_Y,ACTION),
     move(ACTION, ENV, TEMP_DATA),
     confirm_step(ENV,TEMP_DATA,X2,Y2,ACTION),
-    %renderMap(ENV),
+    renderMap(ENV),
     protocol(ENV,(X2,Y2),ACTION,GOAL,DATA).
 
 pick_protocol_2(ENV,[(X1,Y1),(X2,Y2)],GOAL,_,DATA):-
     format('Pick_Protocol_2: Failsafe Goal ~w ~n',[GOAL]),
-    py_call(prolog_gui:output_text('Pick_Protocol_2: Failsafe Goal  \n')),
+    py_call(prolog_gui:output_text('Pick_Protocol_2: Failsafe Goal - no goal defined for action')),
     MOVE_X is X2 - X1,
     MOVE_Y is Y2 - Y1,
     move_py(MOVE_X,MOVE_Y,ACTION),
     move(ACTION, ENV, TEMP_DATA),
     confirm_step_door(TEMP_DATA,X2,Y2),
     asserta(floor_locked(X2,Y2)),
-    %renderMap(ENV),
+    renderMap(ENV),
     protocol(ENV,(X2,Y2),ACTION,GOAL,DATA),!;
     pick_protocol_2(ENV,[(X1,Y1),(X2,Y2)],'fail',_,DATA).
 
@@ -605,8 +610,10 @@ pick_protocol_2(ENV,[(X1,Y1),(X2,Y2)],GOAL,_,DATA):-
  * @param DATA The resulting game data after executing the pick protocol.
  */
 pick_protocol(ENV,[(X1,Y1),(X2,Y2)], GOAL,DATA):-
-        move('_SEARCH_', ENV, TEMP_DATA),
-        get_info_from_map(TEMP_DATA, OBS, _, _, _),
-        translate_glyphs(OBS.glyphs, TRANSLATED_MATRIX),
-        get_elem(TRANSLATED_MATRIX,X2,Y2,ELEM),
-        pick_protocol_2(ENV,[(X1,Y1),(X2,Y2)],GOAL,ELEM,DATA).
+        move('_SEARCH_', ENV, TEMP_DATA),           %does a search to get new data
+        get_info_from_map(TEMP_DATA, OBS, _, _, _), %gets info from map
+        translate_glyphs(OBS.glyphs, TRANSLATED_MATRIX),   
+        get_elem(TRANSLATED_MATRIX,X2,Y2,ELEM),                 %gets glyph in square to check what objective it is (the objective might have moved (monsters or items, something could be in the way as well))
+        pick_protocol_2(ENV,[(X1,Y1),(X2,Y2)],GOAL,ELEM,DATA). %picks protocol propper
+
+%goal and ELEM should be the same but are currently not being checked against each other due to variance
