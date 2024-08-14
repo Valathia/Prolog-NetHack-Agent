@@ -229,30 +229,71 @@ def draw_dungeon(matrix,dungeon_num):
             
             #adjust statues - 1st statue is 1082 on the bitmap  - statues also need to account for monster redundency
             if n>=5595:
-                n_statue = n - 4513
+                n_statue = 1082
                 n -= 5595
             
             #monster redundency calculus
             if(n<1906):
 
                 #monster
-                if n <= 381:
+                if n <= 380:
                     pass
-                #762 is invisible monster
                 #pet monster
-                elif n <= 762:
+                elif n < 762:
                     n-=381
+                #762 is invisible monster
+                elif n == 762:
+                    n = 393
                 # detect
                 elif n < 1144:
                     n -= 763
                 # body - should default to corpse object 2146 maps to 636 on bitmap
+                # human bodies have diferent corpse default
                 elif n < 1525:
                     n = 636
                 # ridden
                 else:
                     n-= 1525
 
+                #Luker above 101101/4
                 #account for extra monsters in bitmap not in game
+                # Monster   Glyph   bitmap  Diff
+                #Giant ant  0       0       0
+                #Hell Hound 26      26      0
+                #Cereberus  -       27      -
+                #Gas Spore  27      28      +1
+                #Shk. Sph.  31      32      +1
+                #Beholder   -       33      -
+                #Kitten     32      34      +2
+                #bb sil Dr. 133     135     +2 
+                #bg gli Dr. -       136     -   
+                #bb red dr. 134     137     +3      
+                #Silver Dr. 142     145     +3
+                #Glist. Dr. -       146     -
+                #Red Dr.    143     147     +4
+                #Jarberwok  175     179     +4
+                #V Jaberwok -       180     -
+                #K. Kop     176     181     +5
+                #Vamp. Lord 223     228     +5
+                #Vamp. Mage -       229     -
+                #Vlad       224     230     +6
+                #Croesus    282     288     +6
+                #Charon     -       289     -
+                #Ghost      283     290     +7
+                #Famine     310     317     +7  
+                #Mail Demon -       318     -
+                #Djini      311     319     +8  
+                #Sha Karnov 344     352     +8
+                #Earendil   -       353     -
+                #Elwing     -       354     -
+                #Hippocrate 345     355     +10
+                #Chrom. Drg 357     367     +10
+                #Gob. King  -       368     -
+                #Cyclops    358     369     +11
+                #neanderthl 369     380     +11
+                #high elf   -       381     -
+                #attendant  370     382     +12
+                #Apprentice 380     392     +12
                 if n <= 27:
                     pass
                 elif n <=31:
@@ -265,22 +306,23 @@ def draw_dungeon(matrix,dungeon_num):
                     n+=4
                 elif n <=223:
                     n+=5 
-                elif n <=283:
+                elif n <=282:
                     n+=6
                 elif n<=310:
                     n+=7
-                elif n<381:
+                elif n<=344:
                     n+=8
-                #because of possibility of corpse object that does not need to be further adjusted -- else do nothing
+                elif n<=357:
+                    n+=10
+                elif n<=369:
+                    n+=11
+                elif n<381:
+                    n+=12
+                #because of possibility of corpse or invis monster that does not need to be further adjusted -- else do nothing
                 else:
                     pass
 
-            #1º item dever ser 390 - 395
-            #gold 2316 - bitmap 807 - row 20 col 7
-            #lenses 2113 row 15 col 4 - 603
-            #looking glass 2111 row 15 col 1 - 601            #acount for extra objects in bitmap and monster sprite displacement - checkpoint void on the bitmap is: 850 (2359 glyph) row 21 col 10
-            #1998 Silver dragon scales - 490 row 12 col 7 - 487
-            #1989 Silver Armor row 11 col 37 - 477   9 
+            #1st item glyph:1903 bitmap: 394
             #OBJ Class:
             elif (n<2541):
                 if n <= 1989:
@@ -313,7 +355,7 @@ def draw_dungeon(matrix,dungeon_num):
             SCREEN.blit(img, (50+(j*SIZE),50+(i*SIZE)))
 
 def print_action_list(action_list):
-    text_surface = pygame.Surface((650,350))
+    text_surface = pygame.Surface((650,450))
     text_surface.fill("#000000")
     SCREEN.blit(text_surface,(1315,50))
 

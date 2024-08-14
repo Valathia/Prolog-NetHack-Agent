@@ -1,0 +1,589 @@
+ACTIONS:
+env.step(n)
+
+<CompassDirection.N: 107>, -> 1 
+<CompassDirection.E: 108>,  -> 2 
+<CompassDirection.S: 106>,  -> 3
+<CompassDirection.W: 104>,  -> 4 
+<CompassDirection.NE: 117>,  -> 5 
+<CompassDirection.SE: 110>,  -> 6
+<CompassDirection.SW: 98>,  -> 7
+<CompassDirection.NW: 121>,  -> 8 
+<CompassDirectionLonger.N: 75>,  -> 9 
+<CompassDirectionLonger.E: 76>,  -> 10
+<CompassDirectionLonger.S: 74>,  -> 11
+<CompassDirectionLonger.W: 72>,  -> 12 
+<CompassDirectionLonger.NE: 85>,  -> 13 
+<CompassDirectionLonger.SE: 78>,  -> 14
+<CompassDirectionLonger.SW: 66>,  -> 15
+<CompassDirectionLonger.NW: 89>,  -> 16
+<MiscDirection.UP: 60>,  -> 17
+<MiscDirection.DOWN: 62>,  -> 18 
+<MiscDirection.WAIT: 46>,  -> 19
+<Command.KICK: 4>,  -> 20
+<Command.EAT: 101>,  -> 21
+<Command.SEARCH: 115>  -> 22
+
+--- PODIA TER FEITO:
+env.print_action_meanings()
+
+0 MiscAction.MORE
+1 CompassDirection.N
+2 CompassDirection.E
+3 CompassDirection.S
+4 CompassDirection.W
+5 CompassDirection.NE
+6 CompassDirection.SE
+7 CompassDirection.SW
+8 CompassDirection.NW
+9 CompassDirectionLonger.N
+10 CompassDirectionLonger.E
+11 CompassDirectionLonger.S
+12 CompassDirectionLonger.W
+13 CompassDirectionLonger.NE
+14 CompassDirectionLonger.SE
+15 CompassDirectionLonger.SW
+16 CompassDirectionLonger.NW
+17 MiscDirection.UP
+18 MiscDirection.DOWN
+19 MiscDirection.WAIT
+20 Command.KICK
+21 Command.EAT
+22 Command.SEARCH
+
+
+%% NEW ACTIONS JUST DROPPED 
+0 MiscAction.MORE
+1 CompassDirection.N
+2 CompassDirection.E
+3 CompassDirection.S
+4 CompassDirection.W
+5 CompassDirection.NE
+6 CompassDirection.SE
+7 CompassDirection.SW
+8 CompassDirection.NW
+9 MiscDirection.UP
+10 MiscDirection.DOWN
+11 MiscDirection.WAIT
+12 Command.OPEN
+13 Command.KICK
+14 Command.SEARCH
+15 Command.EAT
+16 Command.ESC
+17 Command.INVENTORY
+18 Command.QUAFF
+19 Command.PICKUP
+
+
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Observations we always need.
+            "glyphs" - _glyph_index
+            "blstats" - _blstats_index
+            "message" - _message_index
+            "program_state" - _program_state_index
+            "internal" - _internal_index
+        
+
+glyphs: An array representing the visible tiles of the dungeon map.
+chars: An array of characters representing what the player can see.
+colors: An array of colors corresponding to the visible characters.
+blstats: An array containing the player's status (e.g., position, health).
+message: A string containing the latest message displayed to the player.
+inv_glyphs, inv_strs, inv_letters, inv_oclasses: Arrays related to the player's inventory.
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ENV OBJECT 
+dict_keys(['penalty_mode', 'penalty_step', 'penalty_time', '_frozen_steps', 'character', '_max_episode_steps', '_allow_all_yn_questions', '_allow_all_modes', '_save_ttyrec_every', 'actions', 'last_observation', 'savedir', '_observation_keys', '_glyph_index', '_blstats_index', '_message_index', '_program_state_index', '_internal_index', '_original_observation_keys', '_original_indices', 'nethack', '_close_nethack', '_random', '_episode', 'observation_space', 'action_space', 'spec', '_steps'])
+
+penalty_step - reward 
+
+env.last_observation[env._glyph_index]
+env.last_observation[env._blstats_index]
+env.last_observation[env._program_state_index]
+env.last_observation[env._internal_index]
+env.last_observation[env._message_index]
+
+[37  5 16 16 11 13 12 12 11  0 14 14  1  0  5  5  4  0  1  0 11  1  0  0 1  0  0]
+BLSTATS ARRAY = [X,Y,,STR,DEX,CONS,INT,WIS,CHAR,SCORE,HIT, MAX_HIT, DEPTH, GOLD,ENERGY,MAX_ENERGY, ARMOR_C, , EXPLVL,EXP_P, TIME,HUNGER,CARRY_CAP,,_]
+    blstats_[NLE_BL_X] = u.ux - 1;     /* x coordinate, 1 <= ux <= cols */
+    blstats_[NLE_BL_Y] = u.uy;         /* y coordinate, 0 <= uy < rows */
+    blstats_[NLE_BL_STR25] = ACURRSTR; /* strength 3..25 */
+    blstats_[NLE_BL_STR125] = ACURR(A_STR);        /* strength 3..125   */
+    blstats_[NLE_BL_DEX] = ACURR(A_DEX);           /* dexterity         */
+    blstats_[NLE_BL_CON] = ACURR(A_CON);           /* constitution      */
+    blstats_[NLE_BL_INT] = ACURR(A_INT);           /* intelligence      */
+    blstats_[NLE_BL_WIS] = ACURR(A_WIS);           /* wisdom            */
+    blstats_[NLE_BL_CHA] = ACURR(A_CHA);           /* charisma          */
+    blstats_[NLE_BL_SCORE] = botl_score();         /* score             */
+    blstats_[NLE_BL_HP] = hitpoints;               /* hitpoints         */
+    blstats_[NLE_BL_HPMAX] = max_hitpoints;        /* max_hitpoints     */
+    blstats_[NLE_BL_DEPTH] = depth(&u.uz);         /* depth             */
+    blstats_[NLE_BL_GOLD] = money_cnt(invent);     /* gold              */
+    blstats_[NLE_BL_ENE] = min(u.uen, 9999);       /* energy            */
+    blstats_[NLE_BL_ENEMAX] = min(u.uenmax, 9999); /* max_energy        */
+    blstats_[NLE_BL_AC] = u.uac;                   /* armor_class       */
+    blstats_[NLE_BL_HD] = Upolyd ? (int) mons[u.umonnum].mlevel
+                                 : 0;       /* monster level, hit-dice */
+    blstats_[NLE_BL_XP] = u.ulevel;         /* experience level  */
+    blstats_[NLE_BL_EXP] = u.uexp;          /* experience points */
+    blstats_[NLE_BL_TIME] = moves;          /* time              */
+    blstats_[NLE_BL_HUNGER] = u.uhs;        /* hunger state      */
+    blstats_[NLE_BL_CAP] = near_capacity(); /* carrying capacity */
+    blstats_[NLE_BL_DNUM] = u.uz.dnum;      /* dungeon number */
+    blstats_[NLE_BL_DLEVEL] = u.uz.dlevel;  /* level number */
+    blstats_[NLE_BL_CONDITION] = condition_bits_; /* condition bit mask */
+    blstats_[NLE_BL_ALIGN] = u.ualign.type;       /* character alignment */
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+GLYPHS MEANING:
+
+code(jackal,12)                  % d     jackal enemy   
+333 -> @ player (IF MONK)
+413 -> f pet(CAT)
+2117 -> ( LEASH (TOOL)
+2316 -> $ GOLD
+2342 -> * GEM yellowish brown (apanhar a gem deu-me guito)
+2247 -> + "vellum" SPELLBOOK CLASS
+2353 -> O Boulder *****
+
+
+2359 ->   VOID 
+2360 -> | PAREDE  
+2361 -> _ PAREDE 
+2362 -> |- TOP LEFT CORNER 
+2363 -> -| TOP RIGHT CORNER 
+2364 -> |_ BOTTOM LEFT CORNER  
+2365 -> -| BOTTOM RIGHT CORNER 
+2366 ->	┼ cross wall 
+2367 ->	┴ T up wall
+2368 ->	┬ T down wall
+2369 ->	┤ T left wall
+2370 ->	├ T right wall
+2371 ->   DOORWAY (não sei se portas vai ter o mesmo código ou não)
+2372 -> - PORTA ABERTA  - Parede Vertical 
+2373 ->   horizontal open door
+2374 -> + PORTA FECHADA - Parede Vertical
+2375 -> + PORTA FECHADA - Parede Horizontal
+2376 -> ≡ IRON BARS
+2377 -> ± TREE 
+2378 -> . CHÃO NORMAL
+2379 -> . CHÃO NORMAL (NO VISIBILITY - PREVIOUSLY DISCOVERED)
+2380 -> # CHÃO TUNEL
+2381 -> # LIT corridor
+2382 -> < STAIRS UP
+2383 -> > STAIRS DOWN
+2384 -> < LADDER UP
+2385 -> > LADDER DOWN 
+2386 -> - altar 
+2387 -> | grave 
+2388 -> \ throne
+2389 -> # sink
+2390 -> { AUGA Fonte 
+2391 -> ≋ pool 
+2392 -> . Ice 
+2393 -> ≋ lava 
+2394 -> . vertical open drawbridge
+2395 -> . horizontal open drawbridge
+2396 -> # vertical closed drawbridge
+2397 -> # horizontal closed drawbridge
+2398 ->   air     cant go here
+2399 -> # cloud  not here 
+2400 -> ≋ water especially not here
+2401 -> arrow trap
+2402 -> dart trap
+2403 -> falling rock trap
+2404 -> squeaky board
+2405 -> bear trap
+2406 -> land mine
+2407 -> rolling boulder trap
+2408 -> sleeping gas trap
+2409 -> rust trap
+2410 -> fire trap
+2411 -> pit
+2412 -> spiked pit
+2413 -> hole                x
+2414 -> trap door           x
+2415 -> teleportation trap  x
+2416 -> level teleporter    x
+2417 -> magic portal        x
+2418 -> web
+2419 -> statue trap
+2420 -> magic trap
+2421 -> anti-magic field
+2422 -> polymorphh trap
+
+2423 -> vibrating square ?? 
+2424-2427 - zap
+2428 - digging beam
+2439 - expensive camera
+2430-2431 - boomerang
+2432-2435 - resistances
+2436 - valid pos
+2437-2445 - engulfing
+
+----- até ao fim dos zaps tá certo
+2541 - start glyph swallow
+
+
+25 * 40 = 1000 + 33 = 1033 - 1º warning no bitmap
+
+##where do these walls go ?
+gnomish WALLS 
+gehenmon walls
+Fort Ludious walls 
+Sokoban wall 
+
+
+avoid at all costs from here on up. explosions and all
+
+The door resists! -> can happen kick it 
+env.step(20)
+env.step(3) --- A porta tava para Sul
+As you kick the door, it crashes open!
+
+This door is locked.
+env.step(20)
+env.step(4)
+WHAMMM!!!
+env.step(4)
+This door is locked.
+
+--> https://gist.github.com/HanClinto/310bc189dcb34b9628d5151b168a34b0 
+
+
+Messages to be aware of:
+The door resists!
+As you kick the door, it crashes open!
+This door is locked.
+
+
+
+#define mon_to_glyph(mon, rng)                                      \
+    ((int) what_mon(monsndx((mon)->data), rng) + GLYPH_MON_OFF)
+
+GLYPH_MON_OFF = 0
+GLYPH_PET_OFF = 381
+GLYPH_INVIS_OFF = 762
+GLYPH_DETECT_OFF = 763
+GLYPH_BODY_OFF = 1144
+GLYPH_RIDDEN_OFF = 1525
+GLYPH_OBJ_OFF = 1906
+GLYPH_CMAP_OFF = 2359
+GLYPH_EXPLODE_OFF = 2446
+GLYPH_ZAP_OFF = 2509
+GLYPH_SWALLOW_OFF = 2541
+GLYPH_WARNING_OFF = 5589
+GLYPH_STATUE_OFF = 5595
+/*
+ * A glyph is an abstraction that represents a _unique_ monster, object,
+ * dungeon part, or effect.  The uniqueness is important.  For example,
+ * It is not enough to have four (one for each "direction") zap beam glyphs,
+ * we need a set of four for each beam type.  Why go to so much trouble?
+ * Because it is possible that any given window dependent display driver
+ * [print_glyph()] can produce something different for each type of glyph.
+ * That is, a beam of cold and a beam of fire would not only be different
+ * colors, but would also be represented by different symbols.
+ *
+ * Glyphs are grouped for easy accessibility:
+ *
+ * monster      Represents all the wild (not tame) monsters.  Count: NUMMONS.
+ *
+ * pet          Represents all of the tame monsters.  Count: NUMMONS
+ *
+ * invisible    Invisible monster placeholder.  Count: 1
+ *
+ * detect       Represents all detected monsters.  Count: NUMMONS
+ *
+ * corpse       One for each monster.  Count: NUMMONS
+ *
+ * ridden       Represents all monsters being ridden.  Count: NUMMONS
+ *
+ * object       One for each object.  Count: NUM_OBJECTS
+ *
+ * cmap         One for each entry in the character map.  The character map
+ *              is the dungeon features and other miscellaneous things.
+ *              Count: MAXPCHARS
+ *
+ * explosions   A set of nine for each of the following seven explosion types:
+ *                   dark, noxious, muddy, wet, magical, fiery, frosty.
+ *              The nine positions represent those surrounding the hero.
+ *              Count: MAXEXPCHARS * EXPL_MAX (EXPL_MAX is defined in hack.h)
+ *
+ * zap beam     A set of four (there are four directions) for each beam type.
+ *              The beam type is shifted over 2 positions and the direction
+ *              is stored in the lower 2 bits.  Count: NUM_ZAP << 2
+ *
+ * swallow      A set of eight for each monster.  The eight positions rep-
+ *              resent those surrounding the hero.  The monster number is
+ *              shifted over 3 positions and the swallow position is stored
+ *              in the lower three bits.  Count: NUMMONS << 3
+ *
+ * warning      A set of six representing the different warning levels.
+ *
+ * statue       One for each monster.  Count: NUMMONS
+ *
+ * The following are offsets used to convert to and from a glyph.
+ */
+
+
+https://github.com/facebookresearch/nle/blob/main/include/monsym.h
+https://nethack.fandom.com/wiki/Custom_map_symbols
+
+kitten = 32
+pet_housecat = 413
+enemy_newt = 318
+jackal = 12 
+
+S_DOG        =  4, /* d */
+S_FELINE     =  6, /* f: cats */
+S_LIZARD     = 58, /* : (reptiles) */
+ 
+
+
+analMatrix([Line|Lines], RES) :- analCols(Line, COL_RES), analMatrix(Lines, [COL_RES| RES]).
+analCols([Col|Cols], RESULT):- doStuffHere(Col, RESULT), analCols(Cols, RESULT).
+
+teoria(Mapa) :- Mapa.tesouro == 1, move(N, _).
+The door opens.
+
+---
+
+array([ 84, 104, 105, 115,  32, 100, 111, 111, 114,  32, 105, 115,  32,
+       108, 111,  99, 107, 101, 100,  46,   0,   0,   0,   0,   0,   0,
+         0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+         0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+         0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+         0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+         0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+         0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+         0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+         0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+         0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+         0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+         0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+         0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+         0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+         0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+         0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+         0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+         0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+         0,   0,   0,   0,   0,   0,   0,   0,   0], dtype=uint8)
+
+
+
+game_innit(ENV):- py_call(sum((tuple(nle:nethack:MiscAction:item()),tuple(nle:nethack:CompassDirection:item()),tuple(nle:nethack:MiscDirection:item()), (nle:nethack:Command:OPEN:item(),
+    nle:nethack:Command:KICK:item(),
+    nle:nethack:Command:SEARCH:item(),
+    nle:nethack:Command:EAT:item(),
+    nle:nethack:Command:ESC:item(),
+    nle:nethack:Command:INVENTORY:item(),
+    nle:nethack:Command:QUAFF:item(),
+    nle:nethack:Command:PICKUP:item())),tuple()), ENV_ACTIONS),
+    py_call(gym:make("NetHackScore-v0", actions= ENV_ACTIONS),ENV),
+py_call(ENV:reset()).
+
+
+
+game_innit(ENV):- py_call(sum((tuple(nle:nethack:MiscAction),tuple(nle:nethack:CompassDirection),tuple(nle:nethack:MiscDirection), (nle:nethack:Command:OPEN,
+    nle:nethack:Command:KICK,
+    nle:nethack:Command:SEARCH,
+    nle:nethack:Command:EAT,
+    nle:nethack:Command:ESC,
+    nle:nethack:Command:INVENTORY,
+    nle:nethack:Command:QUAFF,
+    nle:nethack:Command:PICKUP)),tuple()), ENV_ACTIONS),
+    py_call(gym:make("NetHackScore-v0", actions= ENV_ACTIONS),ENV),
+py_call(ENV:reset()).
+
+
+r = 8
+c = 5
+playerat = 6,1
+[[2359, 2359, 2359, 2359, 2359],
+ [2361, 2361, 2361, 2372, 2361],
+ [2360, 2378, 2378, 2378, 2360],
+ [2360, 2378, 2378, 2378, 2360],
+ [2360, 2378, 2378, 2378, 2360],
+ [2360, 333, 2378, 2378, 2360],
+ [2360, 2378, 2378, 2378, 2360],
+ [2361, 2361, 2361, 2361, 2361]]
+
+ get_elem(5,1,[[2359, 2359, 2359, 2359, 2359],
+ [2361, 2361, 2361, 2372, 2361],
+ [2360, 2378, 2378, 2378, 2360],
+ [2360, 2378, 2378, 2378, 2360],
+ [2360, 2378, 2378, 2378, 2360],
+ [2360, 333, 2378, 2378, 2360],
+ [2360, 2378, 2378, 2378, 2360],
+ [2361, 2361, 2361, 2361, 2361]],E).
+
+
+ len_combination(Len, Lst, Comb) :-
+    length(Comb, Len),
+    len_combination_(Comb, Lst).
+
+% Finished when the combination has been populated
+len_combination_([], _).
+len_combination_([H|T], [E|Lst]) :-
+    % Choice of whether to use or ignore E
+    (   (H, T0) = (E, T)
+    ;   T0 = [H|T]
+    ),
+    len_combination_(T0, Lst).
+
+
+trace, (check_elem(5,1,[[2359, 2359, 2359, 2359, 2359],
+ [2361, 2361, 2361, 2372, 2361],
+ [2360, 2378, 2378, 2378, 2360],
+ [2360, 2378, 2378, 2378, 2360],
+ [2360, 2378, 2378, 2378, 2360],
+ [2360, 333, 2378, 2378, 2360],
+ [2360, 2378, 2378, 2378, 2360],
+ [2361, 2361, 2361, 2361, 2361]],[1,0,0,1,-1,0,0,-1], E)).
+
+
+
+ docker build . -t prolog  && docker run prolog
+  docker ps                                
+  docker stop codigo
+
+o  bitmap dawnhack 32:
+col: 40 
+row: 37
+
+cada código é: CODIGO // 40 - row
+              CODIGO mod 40 - col 
+8*40 = 320+30 =  350
+-> 342 
+- 8 monstros a mais 
+ultimo wizard: 341
+bitmap: 349
+
+row: 22
+col: 10
+
+891  - 2359 (-1468)
+
+ultimo: row: 9
+        col: 21 (32 ?)
+
+player: 
+    row: 8
+    col: 21
+    341
+    320
+    
+25 	GLYPH_MON 	"hell hound pup" 	
+26 	GLYPH_MON 	"hell hound"
+27 	GLYPH_MON 	"gas spore"
+---- "CEREBRUS" ??
+28 	GLYPH_MON 	"floating eye" 	    29
+29 	GLYPH_MON 	"freezing sphere" 	30
+30 	GLYPH_MON 	"flaming sphere" 	31
+31 	GLYPH_MON 	"shocking sphere" 	32
+----- "BEHOLDER" ??
+32 	GLYPH_MON 	"kitten" 34
+
+132 	GLYPH_MON 	"baby gray dragon" 	
+133 	GLYPH_MON 	"baby silver dragon"
+---- BABY SHIMMERING DRAGON 	
+134 	GLYPH_MON 	"baby red dragon" 	
+
+
+141 	GLYPH_MON 	"gray dragon" 	
+142 	GLYPH_MON 	"silver dragon" 	
+---- SHIMMERING DRAGON
+143 	GLYPH_MON 	"red dragon"
+
+175  GLYPH_MON  jabberwock
+--- VORPAL jabberwock
+176  GLYPH_MON 	"Keystone Kop"
+
+
+223 	GLYPH_MON 	"vampire lord" 	
+---- VAMPIRE MAGE
+224 	GLYPH_MON 	"Vlad the Impaler"
+
+282 	GLYPH_MON 	"Croesus" 	
+---- CHARON
+283 	GLYPH_MON 	"ghost"
+
+
+310 	GLYPH_MON 	"Famine" 	
+---- MAILDEMON
+311 	GLYPH_MON 	"djinni"
+
+38 - Tiger - na realidade
+40 - Tiger - no bitmap
+
+381-761 - PETS 
+762 - ? INVISIBLE MONSTER 
+
+1906 - 2358 OBJECT
+
+glyphs in game:  452
+
+glyps in map: 456
+6 + 11* 40 + 10
+a mais: 4
+shimmering dragon scale mail
+shimmering scales
+scroll of mail 
+
+1989 	GLYPH_OBJ 	"silver dragon scale mail" 	ARMOR_CLASS 0 1512
+----- SHIMMERING SCALE MAIL
+1990 	GLYPH_OBJ 	"red dragon scale mail" 	ARMOR_CLASS 1 1511
+
+1998 	GLYPH_OBJ 	"silver dragon scales" 	ARMOR_CLASS 1 1511
+----- SHIMMERING SCALES
+1999 	GLYPH_OBJ 	"red dragon scales" 	ARMOR_CLASS 2 1510
+
+2244 	GLYPH_OBJ 	"STRC PRST SKRZ KRK" 	SCROLL_CLASS 2 1510
+---- SCROLL OF MAIL (from the mail demon)
+2245 	GLYPH_OBJ 	"unlabeled" 	SCROLL_CLASS 3 1509
+
+5589 - 5594 WARNING
+
+2540
+
+bitmap size: 1280 × 1184
+40 per row 
+37 rows 
+37*40 = 1480 - 4 = 1476
+
+//need to set these as non monster 
+367 - 380 - quest guardians
+342 - 354 - quest givers 
+267 - 279 - peaceful
+
+
+
+fort mapping: walls
+dungeon #0 : regular dungeon
+dungeon #2 : gnmomish mines 
+walls: 2360 - 2370
+bitmap 
+dungeon #2: row 25   col 38
+            row 26 col 8
+1038 - 1048
+
+statues are off, instead of bat, got unicorn, that's 2 off -- check if statues still off
+Prolog odd behaviour:
+Closed Door Protocol_1: Door Broke, new protocol!
+Closed Door Protocol_1: Door didnt break, LOCK
+Closed Door Protocol_1: Failsafe - Search End
+Closed Door Protocol_1: Door Broke, new protocol!
+Closed Door Protocol_1: Door didnt break, LOCK
+Closed Door Protocol_1: Failsafe - Search End
+
+
+
+
+torchbg
+<a href="https://www.freepik.com/free-vector/castle-dungeon-interior-with-torches_37471973.htm#fromView=search&page=5&position=26&uuid=4d722681-a137-436f-944c-1fc7be20f61c">Image by upklyak on Freepik</a>
+mine tunnel
+<a href="https://www.freepik.com/free-vector/mine-tunnel-with-deposit-iron-coal-inside_32886142.htm#fromView=search&page=1&position=7&uuid=4d722681-a137-436f-944c-1fc7be20f61c">Image by upklyak on Freepik</a>
+mine cave 
+<a href="https://www.freepik.com/free-vector/underground-mine-cave-game-cartoon-illustration-dark-mountain-cavern-inside-with-yellow-crystal-portal-door-fantasy-dungeon-tunnel-with-mysterious-entrance-parallel-place-2d-level-scene_61392988.htm#fromView=search&page=1&position=18&uuid=4d722681-a137-436f-944c-1fc7be20f61c">Image by upklyak on Freepik</a>

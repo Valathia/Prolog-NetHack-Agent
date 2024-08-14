@@ -7,7 +7,7 @@ import interface
 janus.consult('./main.pl',module='main')
 
 #constants
-LIST_MAX_SIZE = 15
+LIST_MAX_SIZE = 22
 ACTION_LIST = []
 
 KEY_MAP = {
