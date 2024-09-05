@@ -1,0 +1,503 @@
+{
+    "stat_keys": [
+        "Y",
+        "X",
+        "strg25",
+        "Str",
+        "Dex",
+        "Con",
+        "Int",
+        "Wis",
+        "Char",
+        "Score",
+        "hp",
+        "maxhp",
+        "Dlvl",
+        "gold",
+        "energy",
+        "maxenergy",
+        "AC",
+        "monsterlvl",
+        "explvl",
+        "exp",
+        "T",
+        "hunger",
+        "carrying",
+        "dungeon_num",
+        "lvl_num",
+        "con_bit_mask",
+        "alig"
+    ],
+    "stats_to_print": [
+        "Str",
+        "Dex",
+        "Con",
+        "Int",
+        "Wis",
+        "Char",
+        "Score",
+        "Dlvl",
+        "AC",
+        "T"
+    ],
+    "sound": {
+        "main_menu": {
+            "file": "assets/Sound/menu_bg_music.mp3"
+        },
+        "game": {
+            "file": "assets/Sound/tranquil-fields.mp3"
+        },        
+        "game_over": {
+            "file": "assets/Sound/gameover_sound.mp3"
+        },
+        "sellect": {
+            "file": "assets/Sound/90s_ui.mp3"
+        },
+        "hover": {
+            "file": "assets/Sound/90s_ui_2.mp3"
+        },
+        "coin": {
+            "file": "assets/Sound/insert_coin.mp3"
+        },
+        "drop_coin": {
+            "file": "assets/Sound/drop_coin.mp3"
+        },
+        "drop_coins" : {
+            "file": "assets/Sound/drop_lots_of_coins.mp3"
+        },
+        "joystick_1" :{
+            "file": "assets/Sound/joystick_1.mp3"
+        },
+        "joystick_2": {
+            "file": "assets/Sound/joystick_2.mp3"
+        },
+        "button": {
+            "file": "assets/Sound/toy_button.mp3"
+        },
+        "collect_coin": {
+            "file": "assets/Sound/collect_coin.mp3"
+        },
+        "kick_hard": {
+            "file": "assets/Sound/kick_hard.mp3"
+        },
+        "kick": {
+            "file": "assets/Sound/kick.mp3"
+        },
+        "monster_death": {
+            "file": "assets/Sound/monster_death.mp3"
+        },
+        "take_bump": {
+            "file": "assets/Sound/take_bump.mp3"
+        },
+        "fountain": {
+            "file": "assets/Sound/fountain.mp3"
+        }
+    },
+    "action_map": {
+        "enter": {
+            "nle_move": 0,
+            "has_graphics": false,
+            "graphic_component": 0,
+            "controller": "keys"
+        },        
+        "[1]": {
+            "nle_move": 7,
+            "has_graphics": true,
+            "graphic_component": 1,
+            "file": "assets/LEFT_DOWN_MOVE.png",
+            "is_full_strip": false, 
+            "is_mirrored" : true,
+            "frame_size": 200,
+            "controller": "joystick"
+        },
+        "[2]": { 
+            "nle_move": 3,
+            "has_graphics": true,
+            "graphic_component": 1,
+            "file":"assets/DOWN_MOVE.png",
+            "is_full_strip": false, 
+            "is_mirrored" : false,
+            "frame_size": 200,
+            "controller": "joystick"
+        },
+        "[3]": {
+            "nle_move": 6,
+            "has_graphics": true,
+            "graphic_component": 1,
+            "file":"assets/DOWN_SIDE_MOVE.png",
+            "is_full_strip": false, 
+            "is_mirrored" : false,
+            "frame_size": 200,
+            "controller": "joystick"
+        },
+        "[4]": {
+            "nle_move": 4,
+            "has_graphics": true,
+            "graphic_component": 1,
+            "file":"assets/LEFT_MOVE.png",
+            "is_full_strip": false, 
+            "is_mirrored" : true,
+            "frame_size": 200,
+            "controller": "joystick"
+        },
+        "[6]": {
+            "nle_move": 2,
+            "has_graphics": true,
+            "graphic_component": 1,
+            "file":"assets/SIDE_MOVE.png",
+            "is_full_strip": false, 
+            "is_mirrored" : false,
+            "frame_size": 200,
+            "controller": "joystick"
+        },
+        "[7]": {
+            "nle_move": 8,
+            "has_graphics": true,
+            "graphic_component": 1,
+            "file":"assets/LEFT_UP_MOVE.png",
+            "is_full_strip": false, 
+            "is_mirrored" : true,
+            "frame_size": 200,
+            "controller": "joystick"
+        },
+        "[8]": {
+            "nle_move": 1,
+            "has_graphics": true,
+            "graphic_component": 1,
+            "file":"assets/UP_MOVE.png",
+            "is_full_strip": false, 
+            "is_mirrored" : false,
+            "frame_size": 200,
+            "controller": "joystick"
+        },
+        "[9]": {
+            "nle_move": 5,
+            "has_graphics": true,
+            "graphic_component": 1,
+            "file":"assets/UP_SIDE_MOVE.png",
+            "is_full_strip": false, 
+            "is_mirrored" : false,
+            "frame_size": 200,
+            "controller": "joystick"
+        },
+        "up": {
+            "nle_move": 9,
+            "has_graphics": true,
+            "graphic_component": 2,
+            "controller": "buttons"
+        },
+        "down": {
+            "nle_move": 10,
+            "has_graphics": true,
+            "graphic_component": 2,
+            "controller": "buttons"
+        },
+        "w": {
+            "nle_move": 11,
+            "has_graphics": false,
+            "graphic_component": 0,
+            "controller": "keys"
+        },
+        "o": {
+            "nle_move": 12,
+            "has_graphics": false,
+            "graphic_component": 0,
+            "controller": "keys"
+        },
+        "k": {
+            "nle_move": 13,
+            "has_graphics": true,
+            "graphic_component": 2,
+            "controller": "buttons"
+        },
+        "s": {
+            "nle_move": 14,
+            "has_graphics": true,
+            "graphic_component": 2,
+            "controller": "buttons"
+        },
+        "e": {
+            "nle_move": 15,
+            "has_graphics": true,
+            "graphic_component": 2,
+            "controller": "buttons"
+        },
+        "backspace": {
+            "nle_move": 16,
+            "has_graphics": false,
+            "graphic_component": 0,
+            "controller": "keys"
+        },
+        "i": {
+            "nle_move": 17,
+            "has_graphics": false,
+            "graphic_component": 0,
+            "controller": "keys"
+        },
+        "q": {
+            "nle_move": 18,
+            "has_graphics": true,
+            "graphic_component": 2,
+            "controller": "buttons"
+        },
+        "[+]": {
+            "nle_move": 19,
+            "has_graphics": false,
+            "graphic_component": 0,
+            "controller": "keys"
+        },
+        "start": {
+            "nle_move": -1,
+            "has_graphics": true,
+            "graphic_component": 1,
+            "file":"assets/start_anim.png",
+            "is_full_strip": false, 
+            "is_mirrored" : false,
+            "frame_size": 340,
+            "controller": "menu"
+        },
+        "quit": {
+            "nle_move": -1,
+            "has_graphics": true,
+            "graphic_component": 1,
+            "file":"assets/quit_anim.png",
+            "is_full_strip": false, 
+            "is_mirrored" : false,
+            "frame_size": 340,
+            "controller": "menu"
+        },
+        "space": {
+            "nle_move": -1,
+            "has_graphics": true,
+            "graphic_component": 1,
+            "file":"assets/coin_button.png",
+            "is_full_strip": false, 
+            "is_mirrored" : false,
+            "frame_size": 85,
+            "controller": "special"
+        },
+        "yes": {
+            "nle_move": -1,
+            "has_graphics": true,
+            "graphic_component": 1,
+            "file":"assets/yes.png",
+            "is_full_strip": false, 
+            "is_mirrored" : false,
+            "frame_size": 150,
+            "controller": "end_menu"
+        },
+        "no": {
+            "nle_move": -1,
+            "has_graphics": true,
+            "graphic_component": 1,
+            "file":"assets/no.png",
+            "is_full_strip": false, 
+            "is_mirrored" : false,
+            "frame_size": 150,
+            "controller": "end_menu"
+        }
+    },
+    "positioning": {
+
+        "big_monitor_fs_size": [1330,480],
+        "big_monitor_fs_margin": [90,115],
+
+        "big_content_margin": [105,130],
+        "big_content_size": [1300,460],
+
+
+        "small_content_margin": [43,45],
+        "small_content_size": [615,190],
+        "coin_pos": [939,883],
+        "coin_size": [85,85],
+        "menu_text": [300,20],
+        "button_size": [100,100],
+        "button_offset": [240,35],
+
+        "menu_button_size": [340,99],
+        "menu_button_offset": [500,200],
+        "end_menu_offset": [472,352],
+        "end_button_size": [150,35],
+
+        "joystick_offset": [-740,300],
+        "joystick_size": [200,200],
+        "play_again_pos": [437,259],
+        "default": [0,0]
+    },
+    "images": {
+        "icon": {
+            "file":"assets/yap_nethack.png"
+        },
+        "bg": {
+            "file":"assets/1920_1080_cenas_monitor_builtin.png"
+        },
+        "fog_bg": {
+            "file":"assets/fog.jpg"
+        },
+        "monitor_overlay": {
+            "file":"assets/monitor_overlay.png"
+        },
+        "small_monitor_overlay":
+        {
+            "file":"assets/small_monitor_overlay.png"
+        },
+        "nle_logo_menu": {
+            "file":"assets/nle_menu_size.png"
+        },
+        "game_over": {
+            "file":"assets/gameover_original.png"
+        },
+        "play_again": {
+            "file":"assets/play_again_text.png"
+        }
+    },
+    "surfaces": {
+        "big_content_surface": {
+            "pos": "big_content_left_corner",
+            "size": "big_content_size",
+            "image": "bg"
+        },
+        "big_overlay_cut": {
+            "pos": "big_content_margin",
+            "size": "big_content_size",
+            "image": "monitor_overlay"
+        },
+        "big_monitor_fs_surface": {
+            "pos": "big_monitor_fs_left_corner",
+            "size": "big_monitor_fs_size",
+            "image": "bg"
+        },
+        "big_overlay_cut_fs": {
+            "pos": "big_monitor_fs_margin",
+            "size": "big_monitor_fs_size",
+            "image": "monitor_overlay"
+        },
+        "small_content_surface": {
+            "pos": "small_content_left_corner",
+            "size": "small_content_size",
+            "image": "bg"
+        },
+        "small_overlay_cut": {
+            "pos": "small_content_margin",
+            "size": "small_content_size",
+            "image": "small_monitor_overlay"
+        },
+        "coin_clean": {
+            "pos": "coin_pos",
+            "size": "coin_size",
+            "image": "bg"
+        }
+    },
+    "animations": {
+        "main_menu_bg": {
+            "file": "assets/menu_bg_anim.png",
+            "frame_width": 1328,
+            "is_full_strip": false,
+            "is_mirrored": false,
+            "init_fade_in": true,
+            "init_fade_out": false,
+            "fade_in_surface": "big_monitor_fs_surface"
+        },
+        "buttons_ss": {
+            "file": "assets/n_sei_que_mais_fazer_sad_face.png",
+            "frame_width": 100,
+            "is_full_strip": false,
+            "is_mirrored": false,
+            "init_fade_in": false,
+            "init_fade_out": false
+        },
+        "arrow": {
+            "file": "assets/arrow.png",
+            "frame_width": 50,
+            "is_full_strip": false,
+            "is_mirrored": false,
+            "init_fade_in": false,
+            "init_fade_out": false
+        },
+        "game_over_bg": {
+            "file": "assets/game_over_anim.png",
+            "frame_width": 1330,
+            "is_full_strip": true,
+            "is_mirrored": false,
+            "init_fade_in": true,
+            "init_fade_out": false,
+            "fade_in_surface": "big_monitor_fs_surface"
+        }
+    },
+    "asset_groups": {
+        "screen": {
+            "static": {
+                "bg": {
+                    "type": "image",
+                    "pos": "default"
+                },
+                "monitor_overlay": {
+                    "type": "image",
+                    "pos": "big_monitor_left_corner"
+                },
+                "joystick_default": {
+                    "type": "graphic_components",
+                    "pos": "joystick_pos"
+                },
+                "button_default": {
+                    "type": "graphic_components",
+                    "pos": "button_pos"
+                },
+                "small_monitor_overlay": {
+                    "type": "images",
+                    "pos": "small_monitor_left_corner"
+                }
+            }
+        },
+        "main_menu": {
+            "static": {
+                "nle_logo_menu": {
+                    "type": "image",
+                    "pos": [300,20]
+                },
+                "big_overlay_cut_fs": {
+                    "type": "surface",
+                    "pos": "default"
+                }
+            },
+            "animated": "main_menu_bg"
+        }
+    },
+    "controller_sets": {
+        "joystick": {
+            "base": "center" ,
+            "offset": "joystick_offset",
+            "pos_key": "joystick_pos",
+            "size": "joystick_size",
+            "type": 0
+        },
+        "buttons": {
+            "base": "joystick_pos",
+            "offset": "button_offset",
+            "pos_key": "button_base",
+            "size": "button_size",
+            "type": 1
+        },
+        "menu": {
+            "base": "default",
+            "offset": "menu_button_offset",
+            "pos_key": "menu_base",
+            "size": "menu_button_size",
+            "type": 2
+        },
+        "special": {
+            "base": "default",
+            "offset": "coin_pos",
+            "pos_key": "coin_pos",
+            "size": "coin_size",
+            "type": 0
+        },
+        "end_menu": {
+            "base": "default",
+            "offset": "end_menu_offset",
+            "pos_key": "end_base",
+            "size": "end_button_size",
+            "type": 3
+        }
+    }
+}
