@@ -73,6 +73,24 @@
         },
         "button": {
             "file": "assets/Sound/toy_button.mp3"
+        },
+        "collect_coin": {
+            "file": "assets/Sound/collect_coin.mp3"
+        },
+        "kick_hard": {
+            "file": "assets/Sound/kick_hard.mp3"
+        },
+        "kick": {
+            "file": "assets/Sound/kick.mp3"
+        },
+        "monster_death": {
+            "file": "assets/Sound/monster_death.mp3"
+        },
+        "take_bump": {
+            "file": "assets/Sound/take_bump.mp3"
+        },
+        "fountain": {
+            "file": "assets/Sound/fountain.mp3"
         }
     },
     "action_map": {
