@@ -22,7 +22,7 @@ ensure_term_environment :-
 % to check for python modules use: py_module_exists(MOD)
 % since prolog is being called from python, it can't import the libraries explicitly, it will crash.
 
-main_start(ENV):- 
+main_start(ENV,GAME):- 
     use_module(library(janus)), 
     use_module(library(system)), 
     ensure_term_environment, 
@@ -30,4 +30,4 @@ main_start(ENV):-
     consult('./actions.pl'),
     consult('./protocols.pl'),
     consult('./game_run.pl'),
-    gameStart(ENV).
+    gameStart(ENV,GAME).

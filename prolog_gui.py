@@ -1,36 +1,36 @@
 import pygame
-import pygame.locals
+#import pygame.locals
 #import gym - in the docker container the gym library is asked to be explicitly installed, after that it will interfere with the nle namespace and will not recognize it's gym's env's
 import numpy as np
 import janus_swi as janus
 import interface
 janus.consult('./main.pl',module='main')
 
-#constants
-LIST_MAX_SIZE = 22
-ACTION_LIST = []
+global CLOCK
+CLOCK = pygame.time.Clock
+
 
 KEY_MAP = {
-    'enter': 0,
-    '[1]': 7,
-    '[2]': 3,
-    '[3]': 6,
-    '[4]': 4,
-    '[6]': 2,
-    '[7]': 8,
-    '[8]': 1,
-    '[9]': 5,
-    'up': 9,
-    'down': 10,
-    'w' : 11,
-    'o': 12,
-    'k':13,
-    's':14,
-    'e':15,
-    'backspace':16,
-    'i':17,
-    'q':18,
-    '[+]':19
+    0: 'enter',
+    7: '[1]',
+    3: '[2]',
+    6: '[3]',
+    4: '[4]',
+    2: '[6]',
+    8: '[7]',
+    1: '[8]',
+    5: '[9]',
+    9: 'up',
+    10: 'down',
+    11: 'w',
+    12: 'o',
+    13: 'k',
+    14: 's',
+    15: 'e',
+    16: 'backspace',
+    17: 'i',
+    18: 'q',
+    19: '[+]'
 }
 
 # NLE ACTIONS FOR REFERENCE
@@ -56,14 +56,12 @@ KEY_MAP = {
 # 19 Command.PICKUP
 
 #output text received from prolog
-def output_text(text):
-    if len(ACTION_LIST) == LIST_MAX_SIZE:
-        ACTION_LIST.pop(0)
-    
-    ACTION_LIST.append(text)
-
-    interface.print_action_list(ACTION_LIST)
-    pygame.display.update()
+def output_text(text:str,var,game):
+    if type(var) != str:
+        text += str(var)
+        game.output_text(text)
+    else:
+        game.output_text(text + var)
 
 
 #is currently printing to console
@@ -79,15 +77,18 @@ def display_inv(env):
         print(letter.tobytes().decode("utf-8"), line.tobytes().decode("utf-8"))
 
 #step function that plays into the env and updates the graphic display (used by prolog)
-def step(env,num):
+
+def step(env,num,game):
     
-    step_res = env.step(num)
+    #step_res = env.step(num)
+    key_name = KEY_MAP[num]
+    step_res = game.prolog_move(key_name)
+    
+    game.graphics.update_graphics(env,game.action_list)
 
-    if step_res[2]:
-        #pygame.mixer.music.stop()
-        #pygame.mixer.Sound.play(interface.gameover_sound)
-        interface.game_over()
-
-    interface.update_graphics(env,ACTION_LIST)
+    if step_res == False:
+        game.game_over()
 
     return step_res
+
+
