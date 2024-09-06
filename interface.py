@@ -63,13 +63,29 @@ class Sound:
             "[9]":self.files['joystick_2']
         }
         self.msg_sounds = {
-            "As you kick the door" : self.files['kick'],
-            "WHAM" : self.files['kick_hard'],
+            "As you kick the door" : self.files['door_slam'],
+            "WHAM" : self.files['door_resist'],
+            "door resists": self.files['door_resist'],
             "$": self.files['collect_coin'],
             "hits!": self.files['take_bump'],
+            "You are hit": self.files['take_bump'],
             "kill": self.files['monster_death'],
             "destroy": self.files['monster_death'],
-            "gurgling": self.files["fountain"]
+            "gurgling": self.files["fountain"],
+            "cash register": self.files["chime"],
+            "F note": self.files["fa"],
+            "is delicious!": self.files['eat'],
+            "hear a door open": self.files['door_open'],
+            "You miss ": self.files['miss'],
+            "misses":self.files['miss'],
+            'kick at empty': self.files['miss'],
+            'hidden': self.files['hidden'],
+            "solid stone":self.files['bonk'],
+            "a wall": self.files['bonk'],
+            "experience level": self.files['level_up'],
+            "swap places": self.files['cat'],
+            "You stop.  Your kitten": self.files['cat_way'],
+            "You stop.  Your little": self.files['dog_way']
         }
 
     def init_sound(self,sound_dict):
@@ -97,7 +113,7 @@ class Sound:
     def msg_sfx(self,msg):
         for keys in self.msg_sounds:
             if keys in msg:
-                if keys == 'fountain':
+                if keys == 'fountain' or keys=='hear a door open':
                     self.msg_sounds[keys].play(maxtime=3000)
                 else:    
                     self.msg_sounds[keys].play()
@@ -248,8 +264,8 @@ class Joystick(Joypad):
         self.key_dict = key_dict
         self.default_state = self.init_default()
         #clean surface
-        print(self.pos)
-        print((w_joystick_anim,h_joystick_anim))
+        #print(self.pos)
+        #print((w_joystick_anim,h_joystick_anim))
         self.update_rect = pygame.Rect(self.pos,(w_joystick_anim,h_joystick_anim))
         self.bg_clean= pygame.Surface([w_joystick_anim, h_joystick_anim], pygame.SRCALPHA)
         self.bg_clean.blit(self.images.images['bg'], (0, 0), self.update_rect)
@@ -374,13 +390,13 @@ class Keypad(Joypad):
                 self.is_pressed = True
                 self.key_pressed = key
         
-        print("pressed key"+key)
+        #print("pressed key"+key)
         return step_res
 
     def release_key(self,clock):
         if self.is_pressed:
             self.animation(self.anim.anim_release,clock,self.key_dict[self.key_pressed].pos,self.key_dict[self.key_pressed].update_rect,self.key_dict[self.key_pressed].bg_clean) # type: ignore
-            print("Released key " + self.key_pressed)
+            #print("Released key " + self.key_pressed)
             self.is_pressed = False
             self.key_pressed = ''
             return True
@@ -939,7 +955,7 @@ class Graphics:
         #     print(f'{key} - {stat_dict[key]}')
         
 
-        stat_msg = 'HP:' + stat_dict['hp'] + '(' + stat_dict['maxhp'] + ') PW:' + stat_dict['energy'] + '(' + stat_dict['maxenergy'] + ') Lvl:' + stat_dict['explvl'] + ' Exp:' + stat_dict['exp'] + ' $:' + stat_dict['gold'] + ' Dungeon #:' + stat_dict['dungeon_num'] + 'Hunger: ' + str(hunger)
+        stat_msg = 'HP:' + stat_dict['hp'] + '(' + stat_dict['maxhp'] + ') PW:' + stat_dict['energy'] + '(' + stat_dict['maxenergy'] + ') Lvl:' + stat_dict['explvl'] + ' Exp:' + stat_dict['exp'] + ' $:' + stat_dict['gold'] + ' Dungeon #:' + stat_dict['dungeon_num'] + ' Hunger: ' + str(hunger)
         stat_msg_2 = 'Neutral'
 
         for key in self.stats_to_print:
@@ -1419,9 +1435,13 @@ class Game:
 # overlay togle para ver as keys/acções
 # algo para guardar os melhores scores quer dos players quer do agent
 # hp bar
+# som de desligar
+
 # ver reinforcement learning 
 # arranjar o prolog todo lol
-
-# added reason for game_over to game_over screen
+#   - é preciso ver que a fome tá num sitio diferente daquele que inicialmente esperado. usar o mesmo que ta a ser usado no interface
+#   - as diagonais estão só a ser realizadas dentro de corredores, de tile de chão de corredor para tile de chão de corredor
+#   - não está a empurrar boulders, boulders não estão na valid list.
+#  added reason for game_over to game_over screen
 if __name__ == '__main__':
     Game()

@@ -37,7 +37,7 @@ valid('horopendrawbridge').
 valid('vertcloseddrawbridge').
 valid('horcloseddrawbdrige').
 valid('food').
-valid('boulder').
+%valid('boulder'). --- o boulder pode ser goal mas não caminho, pode não dar para empurrar e dá asneira
 
 intact_door('door').
 intact_door('doorop').
@@ -53,9 +53,9 @@ goals('door').
 goals('doorop').
 goals('passage').
 goals('floortunel').
-goals('boulder').
+%goals('boulder').
 %goals('floor').
-
+is_floor('floortunel').
 /**
  * Declaration of methods that will be asserted and retracted to define previous paths and doors so the player will not turn back, unless necessary.
  * The floor hierarchy and locked doors change the order in which the player explores, being locked implies a removal from the objectives, but not a restriction in going though them.
@@ -157,6 +157,36 @@ translate_glyphs([], []).
 translate_glyphs([LINE], [CONVERTED_LINE]):- convertLine(LINE, CONVERTED_LINE).
 translate_glyphs([LINE|LINES], [CONVERTED_LINE|MATRIX]):- convertLine(LINE, CONVERTED_LINE), translate_glyphs(LINES, MATRIX).
 
+/**
+ * DEBUGING FUNCTIONS
+ *
+ * 
+ * 
+ */
+
+
+print_matrix(MATRIX,20):-
+    nth0(20,MATRIX,LINE),
+	format('~w ~n',[LINE]),!.
+
+print_matrix(MATRIX,N):-
+    nth0(N,MATRIX,LINE),
+    format('~w ~n',[LINE]),
+    NewN is N + 1,
+    print_matrix(MATRIX,NewN).
+
+designate(_,_,'player_monk','player_monk').
+designate(R,C,_,'wayback'):- wayback(R,C).
+designate(_,_,VALUE,'valid'):- valid(VALUE),!.
+designate(_,_,VALUE,VALUE).
+
+convertLine_valids([VALUE],INDEX_ROW,[DESIGNATION],78):- designate(INDEX_ROW,78,VALUE,DESIGNATION),!.
+convertLine_valids([VALUE|VALUES], INDEX_ROW, [DESIGNATION|REST],C):- designate(INDEX_ROW,C,VALUE,DESIGNATION), NewC is C+1, convertLine_valids(VALUES,INDEX_ROW,REST,NewC).
+
+translate_valid([LINE], [CONVERTED_LINE],20):- convertLine_valids(LINE,20, CONVERTED_LINE,0),!.
+translate_valid([LINE|LINES],[CONVERTED_LINE|VALID_MATRIX],N):- convertLine_valids(LINE,N,CONVERTED_LINE,0), NewN is N + 1, translate_valid(LINES,VALID_MATRIX,NewN).
+
+/**------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- */
 
 /**
  * Get an element from a matrix at the specified row and column.
@@ -317,13 +347,33 @@ check_valid((X,Y), Matrix) :-
  */
 neighbors((X, Y), Matrix, Neighbors) :-
     get_elem(Matrix,X,Y,CUR),
-    neighbors((X, Y), Matrix, Neighbors, CUR),
-    format('Cur Neighbor: ~w ~n',[CUR]),
-    format('Cur Neighbor Pos: ~w ~n',[(X, Y)]),
-    format('Neighbours: ~w ~n',[Neighbors]).
+    neighbors((X, Y), Matrix, Neighbors, CUR).
+    %format('Cur Neighbor: ~w ~n',[CUR]),
+    %format('Cur Neighbor Pos: ~w ~n',[(X, Y)]),
+    %format('Neighbours: ~w ~n',[Neighbors]).
 
+%this seems to be working, if it's a door it doesn't go in diagonally
 neighbors((X, Y), Matrix, Neighbors, CUR) :-
-    intact_door(CUR),
+    %format('Cur Neighbor floortunnel - Admissable diagonals from it. ~w ~n',[CUR]),
+    is_floor(CUR),
+    findall((NX, NY),
+            (   (NX is X + 1, NY is Y);
+                (NX is X - 1, NY is Y);
+                (NX is X, NY is Y + 1);
+                (NX is X, NY is Y - 1);
+                (NX is X + 1, NY is Y + 1,get_elem(Matrix,NX,NY,Elem),is_floor(Elem));
+                (NX is X - 1, NY is Y - 1,get_elem(Matrix,NX,NY,Elem),is_floor(Elem));
+                (NX is X + 1, NY is Y - 1,get_elem(Matrix,NX,NY,Elem),is_floor(Elem));
+                (NX is X - 1, NY is Y + 1,get_elem(Matrix,NX,NY,Elem),is_floor(Elem))
+                ),
+            AllNeighbors),
+    include({Matrix}/[Pos]>>in_bounds(Pos, Matrix), AllNeighbors, InBoundsNeighbors),
+    include({Matrix}/[Pos]>>check_valid(Pos, Matrix), InBoundsNeighbors, Neighbors).
+
+%when the player starts from a door, the door won't be a door but player...
+%needs to exclude the player as well. 
+neighbors((X, Y), Matrix, Neighbors, _) :-
+    %format('Cur Neighbor is not floortunnel ~w ~n',[CUR]),
     findall((NX, NY),
             (   (NX is X + 1, NY is Y);
                 (NX is X - 1, NY is Y);
@@ -333,20 +383,46 @@ neighbors((X, Y), Matrix, Neighbors, CUR) :-
     include({Matrix}/[Pos]>>in_bounds(Pos, Matrix), AllNeighbors, InBoundsNeighbors),
     include({Matrix}/[Pos]>>check_valid(Pos, Matrix), InBoundsNeighbors, Neighbors).
 
-neighbors((X, Y), Matrix, Neighbors, _) :-
-    findall((NX, NY),
-            (   (NX is X + 1, NY is Y);
-                (NX is X - 1, NY is Y);
-                (NX is X, NY is Y + 1);
-                (NX is X, NY is Y - 1);
-                (NX is X + 1, NY is Y + 1,get_elem(Matrix,NX,NY,Elem),\+intact_door(Elem));
-                (NX is X - 1, NY is Y - 1,get_elem(Matrix,NX,NY,Elem),\+intact_door(Elem));
-                (NX is X + 1, NY is Y - 1,get_elem(Matrix,NX,NY,Elem),\+intact_door(Elem));
-                (NX is X - 1, NY is Y + 1,get_elem(Matrix,NX,NY,Elem),\+intact_door(Elem))
-                ),
-            AllNeighbors),
-    include({Matrix}/[Pos]>>in_bounds(Pos, Matrix), AllNeighbors, InBoundsNeighbors),
-    include({Matrix}/[Pos]>>check_valid(Pos, Matrix), InBoundsNeighbors, Neighbors).
+
+:-dynamic(edge/3).
+
+build_edge(_,[]).
+
+build_edge(Start,[Cur|Neighbors]):-
+    \+edge(_,Cur,_),
+    get_weight(Start,Cur,G),
+    asserta(edge(Start,Cur,G)),
+    build_edge(Start,Neighbors).
+
+build_edge(Start,[_|Neighbors]):-
+    build_edge(Start,Neighbors).
+
+% make_vert(Vert):-
+%     \+vert(Vert),
+%     asserta(vert(Vert)).
+
+% make_vert(Vert).
+
+build_graph(Start,Matrix):-
+    neighbors(Start,Matrix,Neighbors),
+    %findall(Node,(member(Node,Neighbors), +\edge(Node,_,_)),Nodes),
+    build_edge(Start,Neighbors),
+    build_graph_list(Neighbors,[],Matrix).
+
+build_graph_list([],_,_).
+
+build_graph_list([Cur|Rest],Visited,Matrix):-
+    neighbors(Cur,Matrix,Neighbors),
+    findall(Node,(member(Node,Neighbors),\+member(Node,Rest),\+member(Node,Visited)),Nodes),
+    build_edge(Cur,Nodes),
+    append(Rest,Nodes,NewNodes),
+    build_graph_list(NewNodes,[Cur|Visited],Matrix).
+
+get_goals(GOAL_LIST,MATRIX):-
+    findall((X,Y),(goals(ELEM_GOAL),get_elem(MATRIX, X, Y, ELEM_GOAL),(edge((X,Y),_,_);edge(_,(X,Y),_)),\+locked(X,Y),\+soft_lock(X,Y),\+floor_locked(X,Y)),L),
+    findall((X,Y),(member((X,Y),L),once(X,Y)),O),
+    findall((X,Y),(member((X,Y),L),\+member((X,Y),O)),H),
+    append(H,O,GOAL_LIST).
 
 /**
  * A* algorithm implementation to find the shortest path in a matrix.
@@ -359,12 +435,18 @@ neighbors((X, Y), Matrix, Neighbors, _) :-
 a_star(Start, (X,Y), Matrix, Path, GAME) :-
     get_elem(Matrix,X,Y,GOAL_P),
     format('A* Star Goal: ~w ~n',[GOAL_P]),
+    format('Goal at: (~w,~w) ~n',[X,Y]),
+    format('Player at: ~w ~n',[Start]),
+    % format('Translated Matrix: ~n'),
+    % print_matrix(Matrix,0),
+    % format('Path Matrix: ~n'),
+    % translate_valid(Matrix,Res,0),
+    % print_matrix(Res,0),
     py_call(prolog_gui:output_text('A* Star Goal: ',GOAL_P, GAME)),
     manhattan(Start, (X,Y), H),
-    format('Manhattan Dist to Goal: ~w ~n',[H]),
-    astar([(Start, [Start], 0, H)], (X,Y), Matrix, RevPath),
+    %format('Manhattan Dist to Goal: ~w ~n',[H]),
+    astar([(H, [Start], 0, H)], (X,Y), Matrix, RevPath), % <--- coordinates (x,y) aka Start should be F in Astar*
     reverse(RevPath, Path).
-
 
 /**
  * Helper predicate for A* algorithm.
@@ -377,8 +459,14 @@ a_star(Start, (X,Y), Matrix, Path, GAME) :-
 astar([(_, Path, _, 0)|_], _, _, Path):-
     format('Found path: ~w ~n',[Path]).
 
-
-astar([(_, CurrentPath, G, _)|Rest], Goal, Matrix, Path) :-
+% astar([(_,CurrentPath,_,_)|[]], _, Matrix,[]) :-     
+%     CurrentPath = [Current|_],
+%     \+length(CurrentPath,1),
+%     neighbors(Current, Matrix, []),
+%     format('No Path to Goal. ~n'),!.
+%mudar a condição para baixo e mudar a condiçao para nao ter rest nem neighbours
+%peso alterado, correção de F(N) para garantir que é sempre crescente
+astar([(OldF, CurrentPath, G, _)|Rest], Goal, Matrix, Path) :-
     CurrentPath = [Current|_],
     neighbors(Current, Matrix, Neighbors),
     checkRest(Rest,All_lists),
@@ -387,14 +475,35 @@ astar([(_, CurrentPath, G, _)|Rest], Goal, Matrix, Path) :-
                 \+ member(Neighbor,CurrentPath),
                 \+ check_list(Neighbor, All_lists),
                 manhattan(Neighbor, Goal, H),
-                NewG is G + 1,
-                F is NewG + H),
+                get_weight(Current,Neighbor,G_2), 
+                NewG is G + G_2,
+                Hcalc is NewG + H,
+                Fcalc is OldF + 1,
+                local_max(F,Hcalc,Fcalc)),
             NewNodes),
     append(Rest, NewNodes, NewOpenList),
     sort(NewOpenList, SortedOpenList),
-    format('CurrentPath: ~w ~n',[CurrentPath]),
-    format('Neighbours to see: ~w ~n',[SortedOpenList]),
+    % format('Rest before: ~w ~n',[Rest]),
+    % format('CurrentPath: ~w ~n',[CurrentPath]),
+    % format('Neighbours to see: ~w ~n ~n',[SortedOpenList]),
     astar(SortedOpenList, Goal, Matrix, Path).
+
+
+% astar([(OldF, CurrentPath, G, _)|[]], Goal, Matrix, []) :-
+%     CurrentPath = [Current|_],
+%     neighbors(Current, Matrix, Neighbors),
+%     findall((F, [Neighbor|CurrentPath], NewG, H),
+%             (   member(Neighbor, Neighbors),
+%                 \+ member(Neighbor,CurrentPath),
+%                 manhattan(Neighbor, Goal, H),
+%                 get_weight(Current,Neighbor,G_2), 
+%                 NewG is G + G_2,
+%                 Hcalc is NewG + H,
+%                 Fcalc is OldF + 1,
+%                 local_max(F,Hcalc,Fcalc)),
+%             NewNodes),
+%     length(NewNodes,0),
+%     format('No Path to Goal. ~n'),!.
 
 checkRest([],[]).
 checkRest(Rest,All_lists):-
@@ -403,9 +512,27 @@ checkRest(Rest,All_lists):-
                 arg(1,ANS_2,ListEl)),
                 All_lists).
 
+local_max(F,Hcalc,Fcalc):- 
+    Fcalc >= Hcalc,
+    F is Fcalc;
+    F is Hcalc.
+
 check_list(El,All_lists):-
     member(List,All_lists),
     member(El,List),!.
+
+get_weight((X1,Y1),(X2,Y2),G):-
+    X1 =\= X2,
+    Y1 =\= Y2,
+    G is 99.
+
+get_weight((X1,_),(X2,_),G):-
+    X1 =:= X2,
+    G is 50.
+
+get_weight((_,Y1),(_,Y2),G):-
+    Y1 =:= Y2,
+    G is 50.
 
 % arg(N,[(5,[(10,28),(10,29),(9,29)],2,3),(6,[(10,29),(10,28),(9,29)],2,4),(6,[(10,30),(9,29)],1,5),(7,[(10,30),(10,29),(9,29)],2,5)],ANS),
 % arg(2,ANS,ANS_2),
@@ -420,49 +547,40 @@ check_list(El,All_lists):-
  * @param GOAL_LIST the resulting list of all available objectives
  */
 
-create_pairs([],_,_,ManList,ManList).
+% create_pairs([],_,_,ManList,ManList).
 
-create_pairs([(X,Y)|T],START_R,START_C,[(D,(X,Y))|CurList],ManList):-
-    manhattan((START_R, START_C), (X, Y), D),
-    create_pairs(T,START_R,START_C,CurList,ManList).
+% create_pairs([(X,Y)|T],START_R,START_C,[(D,(X,Y))|CurList],ManList):-
+%     manhattan((START_R, START_C), (X, Y), D),
+%     create_pairs(T,START_R,START_C,CurList,ManList).
 
-get_pairs([],Pairs,Pairs).
+% get_pairs([],Pairs,Pairs).
 
-get_pairs([((_,X,Y))|T], [(X,Y)|CurList],Pairs):-
-    get_pairs(T,CurList,Pairs).
+% get_pairs([((_,X,Y))|T], [(X,Y)|CurList],Pairs):-
+%     get_pairs(T,CurList,Pairs).
 
-order_goals(MATRIX,START_R,START_C,GOAL_LIST):-
+% order_goals(MATRIX,START_R,START_C,GOAL_LIST):-
+%     findall((X,Y),(goals(ELEM_GOAL),get_elem(MATRIX, X, Y, ELEM_GOAL),\+locked(X,Y),\+soft_lock(X,Y),\+floor_locked(X,Y)),L),
+%     findall((X,Y),(member((X,Y),L),once(X,Y)),O),
+%     findall((X,Y),(member((X,Y),L),get_elem(MATRIX, X, Y, 'stairsdown')),Stairs),
+%     findall((X,Y),(member((X,Y),L),\+member((X,Y),O),\+member((X,Y),Stairs)),List),
+%     create_pairs(List,START_R, START_C,ManList,[]),
+%     format('Manhatan List: -~w ~n',[ManList]),
+%     sort(ManList, SortedGoalList),
+%     format('Manhatan List Sorted: -~w ~n',[SortedGoalList]),
+%     get_pairs(SortedGoalList,Pairs,[]),
+%     append(Stairs,Pairs,Half),
+%     append(Half,O,GOAL_LIST),
+%     format('O: -~w ~n',[O]),
+%     format('Stairs: -~w ~n',[Stairs]),
+%     format('List: -~w ~n',[List]),
+%     format('Goal List: ~w ~n',[GOAL_LIST]).
+
+
+get_objectives(MATRIX, GOAL_LIST):-
     findall((X,Y),(goals(ELEM_GOAL),get_elem(MATRIX, X, Y, ELEM_GOAL),\+locked(X,Y),\+soft_lock(X,Y),\+floor_locked(X,Y)),L),
     findall((X,Y),(member((X,Y),L),once(X,Y)),O),
-    findall((X,Y),(member((X,Y),L),get_elem(MATRIX, X, Y, 'stairsdown')),Stairs),
-    findall((X,Y),(member((X,Y),L),\+member((X,Y),O),\+member((X,Y),Stairs)),List),
-    create_pairs(List,START_R, START_C,ManList,[]),
-    format('Manhatan List: -~w ~n',[ManList]),
-    sort(ManList, SortedGoalList),
-    format('Manhatan List Sorted: -~w ~n',[SortedGoalList]),
-    get_pairs(SortedGoalList,Pairs,[]),
-    append(Stairs,Pairs,Half),
-    append(Half,O,GOAL_LIST),
-    format('O: -~w ~n',[O]),
-    format('Stairs: -~w ~n',[Stairs]),
-    format('List: -~w ~n',[List]),
-    format('Goal List: ~w ~n',[GOAL_LIST]).
-
-
-% get_objectives(MATRIX, GOAL_LIST):-
-%     %findall((X,Y),(goals(ELEM_GOAL),get_elem(MATRIX, X, Y, ELEM_GOAL),\+locked(X,Y),\+soft_lock(X,Y),\+floor_locked(X,Y)),L),
-    
-%     findall((X,Y),(member((X,Y),L),once(X,Y)),O),
-
-%     %findall((X,Y),(member((X,Y),L),floor_once(X,Y)),FO),
-%     %findall((X,Y),(member((X,Y),L),floor_twice(X,Y)),FT),
-%     %findall((X,Y),(member((X,Y),L),get_elem(MATRIX, X, Y, 'floor'),length(FL,5)),FL),!,
-%     %append(FO,O,FOO),
-%     %append(FOO,FT,FOOFT),
-%     %append(FOOFT,FL,AllVisited),
-%     %instead of O it was AllVisited
-%     findall((X,Y),(member((X,Y),L),\+member((X,Y),O)),H),
-%     append(H,O,GOAL_LIST).
+    findall((X,Y),(member((X,Y),L),\+member((X,Y),O)),H),
+    append(H,O,GOAL_LIST).
 
 
 get_objectives_2(MATRIX, GOAL_LIST):-
@@ -491,23 +609,28 @@ get_objectives_2(MATRIX, GOAL_LIST):-
  * @param ELEM_GOAL Selected Goal to go towards to
  * @param SOL List of coordinates representing the path from (START_R, START_C) to (END_R, END_C).
  */
-% get_path(MATRIX, START_R, START_C, [], ELEM_GOAL, SOL):-
-%     py_call(prolog_gui:output_text('Get path retract...')),
+% get_path(MATRIX, START_R, START_C, [], ELEM_GOAL, SOL,GAME):-
+%     py_call(prolog_gui:output_text('Get path options - retract...','',GAME)),
 %     retract(wayback(_,_)),
-%     get_next_move(MATRIX, START_R, START_C, ELEM_GOAL, SOL).
+%     retract(wayback(_,_)),
+%     get_next_move(MATRIX, START_R, START_C, ELEM_GOAL, SOL,GAME).
 
 %hasn't gone here
 get_path(MATRIX, START_R, START_C, [], ELEM_GOAL, SOL,GAME):-
-    py_call(prolog_gui:output_text('Get path failsafe - retract failed','',GAME)),          %no objectives introduce floor objectives
-    retract(wayback(_,_)),
-    get_objectives_2(MATRIX, GOAL_LIST),
-    get_path(MATRIX, START_R, START_C, GOAL_LIST, ELEM_GOAL, SOL,GAME).
+    py_call(prolog_gui:output_text('Get path options exhausted - retract all FAILSAFE','',GAME)),          %no objectives introduce floor objectives
+    retractall(wayback(_,_)),
+    retractall(edge(_,_,_)),
+    get_next_move(MATRIX, START_R, START_C, ELEM_GOAL, SOL,GAME).
+    %get_objectives_2(MATRIX, GOAL_LIST),
+    %get_path(MATRIX, START_R, START_C, GOAL_LIST, ELEM_GOAL, SOL,GAME).
 %
 
 get_path(MATRIX, START_R, START_C, [(X,Y)|T], ELEM_GOAL, SOL, GAME):-
     py_call(prolog_gui:output_text('Searching for path...','',GAME)),
     get_elem(MATRIX,X,Y,ELEM_GOAL),
     a_star((START_R,START_C),(X,Y), MATRIX, SOL, GAME),!;
+    % length(SOL,L),
+    % L >= 2,!;
     get_path(MATRIX, START_R, START_C, T, ELEM_GOAL, SOL, GAME).
 
 /**
@@ -525,11 +648,13 @@ get_path(MATRIX, START_R, START_C, [(X,Y)|T], ELEM_GOAL, SOL, GAME):-
 %     format('GOAL LIST: ~w ~n',[GOAL_LIST]).
 
 get_next_move(MATRIX, START_R, START_C, ELEM_GOAL, SOL, GAME):-
-    %get_objectives(MATRIX, GOAL_LIST),
-    order_goals(MATRIX,START_R, START_C,GOAL_LIST),
+    %get_objectives(MATRIX,GOAL_LIST),
+    build_graph((START_R,START_C),MATRIX),!,
+    get_goals(GOAL_LIST,MATRIX),
     format('GOAL LIST: ~w ~n',[GOAL_LIST]),
     %py_call(prolog_gui:output_text('GOAL LIST: ',GOAL_LIST,GAME)),
-    get_path(MATRIX, START_R, START_C, GOAL_LIST, ELEM_GOAL, SOL, GAME).
+    get_path(MATRIX, START_R, START_C, GOAL_LIST, ELEM_GOAL, SOL, GAME),
+    retractall(edge(_,_,_)).
 
 
 /**
@@ -544,6 +669,7 @@ calculate_best_action(WORLD_DATA, ELEM_GOAL, GAME, BEST_ACTION):-
     translate_glyphs(OBS.glyphs, TRANSLATED_MATRIX),                                                  %hunger
     get_Player_info(OBS.blstats, POS_COL, POS_ROW, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _),
     %get_elem(TRANSLATED_MATRIX,X,Y,ELEM_GOAL),
+    %print_matrix(TRANSLATED_MATRIX,0),
     get_next_move(TRANSLATED_MATRIX, POS_ROW, POS_COL, ELEM_GOAL, BEST_ACTION, GAME).
 
 
@@ -594,5 +720,5 @@ game_run(ENV, PREV_WORLD_DATA, GAME, true):-
  */
 gameStart(ENV,GAME):- %game_innit(ENV),
     move('_SEARCH_', ENV, GAME, WORLD_DATA),
-    game_run(ENV, WORLD_DATA, GAME, true),
-    nb_setval(game,GAME).
+    game_run(ENV, WORLD_DATA, GAME, true).
+    %nb_setval(game,GAME).

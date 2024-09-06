@@ -71,7 +71,7 @@
         "joystick_2": {
             "file": "assets/Sound/joystick_2.mp3"
         },
-        "button": {
+        "bonk": {
             "file": "assets/Sound/toy_button.mp3"
         },
         "collect_coin": {
@@ -91,6 +91,45 @@
         },
         "fountain": {
             "file": "assets/Sound/fountain.mp3"
+        },
+        "chime": {
+            "file": "assets/Sound/cash_register.mp3"
+        },
+        "fa": {
+            "file": "assets/Sound/fa.mp3"
+        },
+        "door_resist": {
+            "file": "assets/Sound/door_resists.mp3"
+        },
+        "door_slam": {
+            "file": "assets/Sound/door_slam.mp3"
+        },
+        "door_open": {
+            "file": "assets/Sound/door_open.mp3"
+        },
+        "eat": {
+            "file": "assets/Sound/eat.mp3"
+        },
+        "miss": {
+            "file": "assets/Sound/woosh.mp3"
+        },
+        "hidden": {
+            "file": "assets/Sound/hidden.mp3"
+        },
+        "button": {
+            "file": "assets/Sound/button.mp3"
+        },
+        "level_up": {
+            "file": "assets/Sound/new_level.mp3"
+        },
+        "cat": {
+            "file": "assets/Sound/cat_being_picked_up.mp3"
+        },
+        "cat_way": {
+            "file": "assets/Sound/small_meow.mp3"
+        },
+        "dog_way": {
+            "file": "assets/Sound/dog_bark.mp3"
         }
     },
     "action_map": {

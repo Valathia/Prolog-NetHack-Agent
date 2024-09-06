@@ -150,9 +150,9 @@ class Animation(Spritesheet):
         
         default = self.image_at(params["default_at"],0)
         
-        print("#n frames: ",self.frames)
-        print("Default image: ",params["default_at"])
-        print('\n')
+        # print("#n frames: ",self.frames)
+        # print("Default image: ",params["default_at"])
+        # print('\n')
         return anim_press, anim_release, default
     
     def set_fade_in(self,surface:pygame.Surface):
