@@ -54,7 +54,7 @@ goals('doorop').
 goals('passage').
 goals('floortunel').
 %goals('boulder').
-%goals('floor').
+goals('floor').
 is_floor('floortunel').
 /**
  * Declaration of methods that will be asserted and retracted to define previous paths and doors so the player will not turn back, unless necessary.
@@ -259,7 +259,7 @@ confirm_step(_,TEMP_DATA,X2,Y2,_,_):-
  */
 confirm_step(ENV,_,X2,Y2,ACTION,GAME):-
     move(ACTION, ENV, GAME, TEMP_DATA),
-    renderMap(ENV),
+    %renderMap(ENV),
     confirm_step(ENV,TEMP_DATA,X2,Y2,ACTION,GAME).
 
 
@@ -288,9 +288,9 @@ execute_action(ENV, [(X1,Y1),(X2,Y2)|T], GOAL, WORLD_DATA, GAME):-
     MOVE_Y is Y2 - Y1,
     move_py(MOVE_X,MOVE_Y,ACTION), %translates MOVE_X & MOVE_Y into a direction
     move(ACTION, ENV, GAME, TEMP_DATA),  %moves in the corresponding direction
-    renderMap(ENV),
+    %renderMap(ENV),
     confirm_step(ENV,TEMP_DATA,X2,Y2,ACTION,GAME), %confirms if the player is in the new square, if he is not, redo the action
-    asserta(floor_locked(X1,Y2)),
+    isFloorOnce(X1,Y1),
     get_info_from_map(TEMP_DATA, _, _, DONE, _),
     is_game_running(DONE, true),
     execute_action(ENV,[(X2,Y2)|T], GOAL, WORLD_DATA, GAME). %,!; %execute next action
@@ -418,11 +418,7 @@ build_graph_list([Cur|Rest],Visited,Matrix):-
     append(Rest,Nodes,NewNodes),
     build_graph_list(NewNodes,[Cur|Visited],Matrix).
 
-get_goals(GOAL_LIST,MATRIX):-
-    findall((X,Y),(goals(ELEM_GOAL),get_elem(MATRIX, X, Y, ELEM_GOAL),(edge((X,Y),_,_);edge(_,(X,Y),_)),\+locked(X,Y),\+soft_lock(X,Y),\+floor_locked(X,Y)),L),
-    findall((X,Y),(member((X,Y),L),once(X,Y)),O),
-    findall((X,Y),(member((X,Y),L),\+member((X,Y),O)),H),
-    append(H,O,GOAL_LIST).
+
 
 /**
  * A* algorithm implementation to find the shortest path in a matrix.
@@ -576,6 +572,12 @@ get_weight((_,Y1),(_,Y2),G):-
 %     format('Goal List: ~w ~n',[GOAL_LIST]).
 
 
+get_goals(MATRIX, GOAL_LIST):-
+    findall((X,Y),(goals(ELEM_GOAL),get_elem(MATRIX, X, Y, ELEM_GOAL),(edge((X,Y),_,_);edge(_,(X,Y),_)),\+locked(X,Y),\+soft_lock(X,Y),\+floor_locked(X,Y)),L),
+    findall((X,Y),(member((X,Y),L),once(X,Y)),O),
+    findall((X,Y),(member((X,Y),L),\+member((X,Y),O)),H),
+    append(H,O,GOAL_LIST).
+
 get_objectives(MATRIX, GOAL_LIST):-
     findall((X,Y),(goals(ELEM_GOAL),get_elem(MATRIX, X, Y, ELEM_GOAL),\+locked(X,Y),\+soft_lock(X,Y),\+floor_locked(X,Y)),L),
     findall((X,Y),(member((X,Y),L),once(X,Y)),O),
@@ -583,8 +585,8 @@ get_objectives(MATRIX, GOAL_LIST):-
     append(H,O,GOAL_LIST).
 
 
-get_objectives_2(MATRIX, GOAL_LIST):-
-    findall((X,Y),(goals(ELEM_GOAL),get_elem(MATRIX, X, Y, ELEM_GOAL),\+locked(X,Y),\+soft_lock(X,Y),\+floor_locked(X,Y)),L),
+get_goals_2(MATRIX, GOAL_LIST):-
+    findall((X,Y),(goals(ELEM_GOAL),get_elem(MATRIX, X, Y, ELEM_GOAL),(edge((X,Y),_,_);edge(_,(X,Y),_)),\+locked(X,Y),\+soft_lock(X,Y),\+floor_locked(X,Y)),L),
     findall((X,Y),(member((X,Y),L),once(X,Y)),O),
     findall((X,Y),(member((X,Y),L),floor_once(X,Y)),FO),
     findall((X,Y),(member((X,Y),L),floor_twice(X,Y)),FT),
@@ -624,6 +626,7 @@ get_path(MATRIX, START_R, START_C, [], ELEM_GOAL, SOL,GAME):-
     %get_objectives_2(MATRIX, GOAL_LIST),
     %get_path(MATRIX, START_R, START_C, GOAL_LIST, ELEM_GOAL, SOL,GAME).
 %
+get_path(_,_,_,[],_,[],GAME):- py_call(prolog_gui:output_text('All out of options - restart','',GAME)).
 
 get_path(MATRIX, START_R, START_C, [(X,Y)|T], ELEM_GOAL, SOL, GAME):-
     py_call(prolog_gui:output_text('Searching for path...','',GAME)),
@@ -650,12 +653,13 @@ get_path(MATRIX, START_R, START_C, [(X,Y)|T], ELEM_GOAL, SOL, GAME):-
 get_next_move(MATRIX, START_R, START_C, ELEM_GOAL, SOL, GAME):-
     %get_objectives(MATRIX,GOAL_LIST),
     build_graph((START_R,START_C),MATRIX),!,
-    get_goals(GOAL_LIST,MATRIX),
+    get_goals_2(MATRIX,GOAL_LIST),
     format('GOAL LIST: ~w ~n',[GOAL_LIST]),
     %py_call(prolog_gui:output_text('GOAL LIST: ',GOAL_LIST,GAME)),
     get_path(MATRIX, START_R, START_C, GOAL_LIST, ELEM_GOAL, SOL, GAME),
     retractall(edge(_,_,_)).
 
+get_next_move(_,_,_,_,[],_).
 
 /**
  * Calculates the best action to take based on game state and goals.
@@ -672,6 +676,7 @@ calculate_best_action(WORLD_DATA, ELEM_GOAL, GAME, BEST_ACTION):-
     %print_matrix(TRANSLATED_MATRIX,0),
     get_next_move(TRANSLATED_MATRIX, POS_ROW, POS_COL, ELEM_GOAL, BEST_ACTION, GAME).
 
+calculate_best_action(_,_,_,[]).
 
 /**
  * Renders the game environment by calling a Python function.
@@ -699,6 +704,12 @@ game_run(ENV, PREV_WORLD_DATA, GAME, true):-
     get_info_from_map(WORLD_DATA, _, _, DONE, _),
     is_game_running(DONE, GAME_RUNNING),
     game_run(ENV, WORLD_DATA, GAME, GAME_RUNNING).
+
+game_run(_, _, GAME, true):- 
+    calculate_best_action(_, _, _, []),!,
+    py_call(prolog_gui:output_text('No more moves left','',GAME)), 
+    %execute_action(ENV, ACTION, GOAL, WORLD_DATA),
+    game_run(_, _, _, false).
 
 /**
  * Initializes the game environment by creating a new instance and resetting it.

@@ -48,7 +48,7 @@
             "file": "assets/Sound/tranquil-fields.mp3"
         },        
         "game_over": {
-            "file": "assets/Sound/gameover_sound.mp3"
+            "file": "assets/Sound/kl-peach-game-over.mp3"
         },
         "sellect": {
             "file": "assets/Sound/90s_ui.mp3"
@@ -334,6 +334,26 @@
             "is_mirrored" : false,
             "frame_size": 150,
             "controller": "end_menu"
+        },
+        "human": {
+            "nle_move": -1,
+            "has_graphics": true,
+            "graphic_component": 1,
+            "file":"assets/human.png",
+            "is_full_strip": false, 
+            "is_mirrored" : false,
+            "frame_size": 300,
+            "controller": "pick_agent_menu"
+        },        
+        "prolog": {
+            "nle_move": -1,
+            "has_graphics": true,
+            "graphic_component": 1,
+            "file":"assets/prolog.png",
+            "is_full_strip": false, 
+            "is_mirrored" : false,
+            "frame_size": 300,
+            "controller": "pick_agent_menu"
         }
     },
     "positioning": {
@@ -357,7 +377,11 @@
         "menu_button_offset": [500,200],
         "end_menu_offset": [472,352],
         "end_button_size": [150,35],
+        "end_menu": [200,200],
 
+        "agent_button_size": [300,60],
+        "agent_button_offset": [272,352],
+        "pick_agent_menu": [400,400],
         "joystick_offset": [-740,300],
         "joystick_size": [200,200],
         "play_again_pos": [437,259],
@@ -388,6 +412,9 @@
         },
         "play_again": {
             "file":"assets/play_again_text.png"
+        },
+        "pick_agent": {
+            "file":"assets/pick_an_agent.png" 
         }
     },
     "surfaces": {
@@ -522,7 +549,8 @@
             "offset": "menu_button_offset",
             "pos_key": "menu_base",
             "size": "menu_button_size",
-            "type": 2
+            "type": 2,
+            "assets": []
         },
         "special": {
             "base": "default",
@@ -536,7 +564,16 @@
             "offset": "end_menu_offset",
             "pos_key": "end_base",
             "size": "end_button_size",
-            "type": 3
+            "type": 3,
+            "assets": ["play_again","default"]
+        },
+        "pick_agent_menu": {
+        "base": "default",
+        "offset": "agent_button_offset",
+        "pos_key": "agent_button_base",
+        "size": "agent_button_size",
+        "type": 3,
+        "assets": ["pick_agent","default"]
         }
     }
 }

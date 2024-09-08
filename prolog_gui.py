@@ -56,12 +56,12 @@ KEY_MAP = {
 # 19 Command.PICKUP
 
 #output text received from prolog
-def output_text(text:str,var,game):
+def output_text(text:str,var,game:interface.Game):
     if type(var) != str:
         text += str(var)
-        game.output_text(text)
+        game.graphics.output_text(text)
     else:
-        game.output_text(text + var)
+        game.graphics.output_text(text + var)
 
 
 #is currently printing to console
@@ -78,17 +78,16 @@ def display_inv(env):
 
 #step function that plays into the env and updates the graphic display (used by prolog)
 
-def step(env,num,game):
+def step(env,num,game:interface.Game):
     
     #step_res = env.step(num)
     key_name = KEY_MAP[num]
     step_res = game.prolog_move(key_name)
     
-    game.graphics.update_graphics(env,game.action_list)
+    #game.graphics.update_graphics(env,0)
 
     if step_res == False:
         game.game_over()
 
     return step_res
-
 

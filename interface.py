@@ -249,7 +249,7 @@ class Joypad:
             self.images.screen.blit(aux,base_pos)
             pygame.display.update(update_rect)
         
-    def press_key(self,env,key,clock):
+    def press_key(self,env,key,clock,mode):
         pass
 
     def release_key(self,clock):
@@ -264,12 +264,9 @@ class Joystick(Joypad):
         self.key_dict = key_dict
         self.default_state = self.init_default()
         #clean surface
-        #print(self.pos)
-        #print((w_joystick_anim,h_joystick_anim))
         self.update_rect = pygame.Rect(self.pos,(w_joystick_anim,h_joystick_anim))
         self.bg_clean= pygame.Surface([w_joystick_anim, h_joystick_anim], pygame.SRCALPHA)
         self.bg_clean.blit(self.images.images['bg'], (0, 0), self.update_rect)
-
         #for this to work better, a buffer is needed to queue animations if they aren't done.
         self.is_anim = False 
         self.anim_size = 0
@@ -341,21 +338,22 @@ class Joystick(Joypad):
         self.is_pressed = True 
         self.key_pressed = key
 
-    def press_key(self,env,key,clock):
+    def press_key(self,env,key,clock,mode):
         #for agent: let env.step should be performed here -- no need for checking if pressed though
-        step_res = env.step(self.key_dict[key].nle_move)
 
-        # if self.is_pressed:
-        #     if key != self.key_pressed:
-        #         self.release_key(clock)
-        #         self.animation(self.key_dict[key].anim_ss.anim_press,clock,self.pos,self.update_rect,self.bg_clean) # type: ignore
-        # else: 
-        self.animation(self.key_dict[key].anim_ss.anim_press,clock,self.pos,self.update_rect,self.bg_clean) # type: ignore
+        if self.is_pressed:
+            if key != self.key_pressed:
+                self.release_key(clock)
+                self.animation(self.key_dict[key].anim_ss.anim_press,clock,self.pos,self.update_rect,self.bg_clean) # type: ignore
+        else: 
+            self.animation(self.key_dict[key].anim_ss.anim_press,clock,self.pos,self.update_rect,self.bg_clean) # type: ignore
         #env.step(self.key_dict[key].nle_move)
         self.is_pressed = True 
         self.key_pressed = key
-        #return env
-        return step_res
+
+        if mode:
+            step_res = env.step(self.key_dict[key].nle_move)
+            return step_res
 
     def release_key(self,clock):
         if self.is_pressed:
@@ -378,15 +376,16 @@ class Keypad(Joypad):
         self.init_buttons(self.button_rect,'update_rect')
         self.init_buttons(self.clean_matrix,'bg_clean')
 
-    def press_key(self,env,key,clock):
+    def press_key(self,env,key,clock,mode):
         #change this for only 1 input at a time for agent (no pressing)
         #if self.is_pressed:
+        step_res = env.step(self.key_dict[key].nle_move)
+
         if key != self.key_pressed:
             if self.is_pressed:
                 self.release_key(clock)
             else:
                 self.animation(self.anim.anim_press,clock,self.key_dict[key].pos,self.key_dict[key].update_rect,self.key_dict[key].bg_clean) # type: ignore
-                step_res = env.step(self.key_dict[key].nle_move)
                 self.is_pressed = True
                 self.key_pressed = key
         
@@ -451,7 +450,7 @@ class Keypad(Joypad):
 
 class MenuVertical(Joypad):
         
-        def __init__(self,key_dict:dict[str,Directional],images:ImageBin,button_base,button_width,button_height):
+        def __init__(self,key_dict:dict[str,Directional],images:ImageBin,button_base,button_width,button_height,assets):
             super().__init__(key_dict,button_width,button_height,images)
             self.button_base = button_base
             self.button_pos,self.cursor_pos = self.button_layout()
@@ -464,6 +463,7 @@ class MenuVertical(Joypad):
             self.cur_cursor_pos:tuple[int,int] = self.cursor_pos[self.who_is_pressed]
             self.prev_key = self.key_dict['quit'].anim_ss.anim_release[0] #type: ignore
             self.prev_key_pos:tuple[int,int] = self.button_pos[1]
+            self.assets = assets
         
         def button_layout(self):
             button_pos:list[tuple[int,int]] = []
@@ -505,24 +505,26 @@ class MenuVertical(Joypad):
 class MenuHorizontal(Joypad):
         #button_width = 340
         #button_height = 99
-        def __init__(self,key_dict:dict[str,Directional],images:ImageBin,button_base,button_width,button_height):
+        def __init__(self,key_dict:dict[str,Directional],images:ImageBin,button_base,button_width,button_height,assets):
             super().__init__(key_dict,button_width,button_height,images)
             self.button_base = button_base
+            self.button_spacing = self.images.pos[self.key_dict[list(self.key_dict.keys())[0]].controller][0]
             self.button_pos = self.button_layout()
             self.who_is_pressed = 0
             self.menu_len = len(self.button_pos)
             self.key_list = self.init_buttons()
-            self.cur_key = self.key_dict['yes'].anim_ss.anim_press[0] #type: ignore
+            self.cur_key = self.key_dict[list(self.key_dict.keys())[0]].anim_ss.anim_press[0] #type: ignore should be yes/human
             self.cur_key_pos:tuple[int,int] = self.button_pos[0] 
-            self.prev_key = self.key_dict['no'].anim_ss.anim_release[0] #type: ignore
+            self.prev_key = self.key_dict[list(self.key_dict.keys())[1]].anim_ss.anim_release[0] #type: ignore should be no/prolog
             self.prev_key_pos:tuple[int,int] = self.button_pos[1]
-
+            self.assets = assets
+        
         def button_layout(self):
             button_pos:list[tuple[int,int]] = []
             #hardcoded needs to be changed
             #+40 + 35
             for i in range(2):
-                button_pos.append((self.button_base[0]+i*200,self.button_base[1]))
+                button_pos.append((self.button_base[0]+i*self.button_spacing,self.button_base[1]))
             return button_pos
 
         def init_buttons(self):
@@ -577,6 +579,16 @@ class ControllerSet:
             size_key = controller_dict[key]['size']
             controllers[key]['width'] = self.images.pos[size_key][0]
             controllers[key]['height'] = self.images.pos[size_key][1]
+            
+            if controllers[key]['type'] == MenuHorizontal or controllers[key]['type'] == MenuVertical:
+                asset_size = len(controller_dict[key]['assets'])
+                assets = []
+                for i in range(0,asset_size,2):
+                    image_key = controller_dict[key]['assets'][i]
+                    pos_key = controller_dict[key]['assets'][i+1]
+                    assets.append((self.images.images[image_key],self.images.pos[pos_key]))
+                controllers[key]['assets'] = assets
+        
         return controllers
 
     def populate(self,keys_dict):
@@ -591,8 +603,11 @@ class ControllerSet:
 
         for key in self.controller_settings:
             settings =  self.controller_settings[key]
-            controller[key] = settings['type'](settings['key_dict'],self.images,settings['pos'],settings["width"],settings["height"])
-        
+            if settings['type'] == MenuHorizontal or settings['type'] == MenuVertical:
+                controller[key] = settings['type'](settings['key_dict'],self.images,settings['pos'],settings["width"],settings["height"],settings["assets"])
+            else:
+                controller[key] = settings['type'](settings['key_dict'],self.images,settings['pos'],settings["width"],settings["height"])
+            
         return controller
 
     def get_controller_type(self,key_name)-> Joystick|Keypad|MenuVertical:
@@ -867,6 +882,9 @@ class Graphics:
         self.bg_surface = self.init_main_menu_graphics()
         self.messages = 'messages.txt'
         self.sound:Sound = sounds
+        self.action_list = []
+        self.action_list_max_size = 10
+        self.msg_max_size = 60      #big screen can fit around 75-ish
 
     def render_text(self,text,size,color):
         return self.get_font(size).render(text,True,color)
@@ -874,7 +892,40 @@ class Graphics:
     def get_font(self,size):  # Returns Press-Start-2P in the desired size
         return pygame.font.Font("assets/font.ttf", size)
 
-    def update_message(self,msg):
+    def output_text(self,text:str):
+        msg_2:str = ""
+
+        if len(text) > self.msg_max_size:
+            ind = self.msg_max_size-1
+            if text[ind] != ' ':
+                for i in range(ind,0,-1):
+                    if text[i] == ' ':
+                        ind = i
+                        break 
+            
+            msg_2 = text[ind+1:]
+            text = text[:ind]
+
+        free_space = self.action_list_max_size-len(self.action_list)
+
+        if msg_2 != '': 
+            if free_space<2:
+                if free_space ==1:
+                    self.action_list.pop(0)
+                else:
+                    self.action_list.pop(0)
+                    self.action_list.pop(0)
+
+
+            self.action_list.append(msg_2)
+
+        if free_space == 0:
+            self.action_list.pop(0)
+        
+        self.action_list.append(text)
+        self.update_action_list()
+
+    def update_message(self,msg,mode):
         terminal_font_m = self.get_font(17)
         msg_len = len(msg)
         strmsg = ''
@@ -889,6 +940,8 @@ class Graphics:
         f.write(str(msg))
         f.close()
         #50, 10
+        if not mode:
+            self.output_text(strmsg)
         self.sound.msg_sfx(strmsg)
         return game_msg
 
@@ -903,19 +956,19 @@ class Graphics:
         self.screen = pygame.display.set_mode((desktop_sizes[self.default_display][0], desktop_sizes[self.default_display][1]),pygame.RESIZABLE,display=self.default_display)
         pygame.display.update()
 
-    def update_action_list(self,action_list):
-            small_monitor = self.update_small_monitor(action_list)
+    def update_action_list(self):
+            small_monitor = self.update_small_monitor()
             self.images.screen.blit(small_monitor,self.images.pos["small_content_left_corner"])
             pygame.display.update(self.small_content_update_rect)
 
-    def update_small_monitor(self,action_list):
+    def update_small_monitor(self):
 
         bg_clean = pygame.Surface.copy(self.images.surfaces['small_content_surface'])
 
         font_text = self.get_font(10)
 
-        for i in range(0,len(action_list)):
-            render_text: pygame.Surface = font_text.render(action_list[i],True, "#F0EAD6")
+        for i in range(0,len(self.action_list)):
+            render_text: pygame.Surface = font_text.render(self.action_list[i],True, "#F0EAD6")
             #render text
             bg_clean.blit(render_text, (0, 0+i*20))
         
@@ -924,7 +977,7 @@ class Graphics:
 
         return bg_clean
 
-    def update_main_monitor(self,env):
+    def update_main_monitor(self,env,mode):
         
         terminal_font_s = self.get_font(15)
 
@@ -955,7 +1008,7 @@ class Graphics:
         #     print(f'{key} - {stat_dict[key]}')
         
 
-        stat_msg = 'HP:' + stat_dict['hp'] + '(' + stat_dict['maxhp'] + ') PW:' + stat_dict['energy'] + '(' + stat_dict['maxenergy'] + ') Lvl:' + stat_dict['explvl'] + ' Exp:' + stat_dict['exp'] + ' $:' + stat_dict['gold'] + ' Dungeon #:' + stat_dict['dungeon_num'] + ' Hunger: ' + str(hunger)
+        stat_msg = 'HP:' + stat_dict['hp'] + '(' + stat_dict['maxhp'] + ') PW:' + stat_dict['energy'] + '(' + stat_dict['maxenergy'] + ') Lvl:' + stat_dict['explvl'] + ' Exp:' + stat_dict['exp'] + ' $:' + stat_dict['gold'] + ' Hunger: ' + str(hunger) + ' Dungeon #:' + stat_dict['dungeon_num']
         stat_msg_2 = 'Neutral'
 
         for key in self.stats_to_print:
@@ -973,7 +1026,7 @@ class Graphics:
         bg_clean.blit(dungeon_surface, dungeon_pos) #30px da msg (20 font size + 10 de margem) acaba nos 226
         
         if msg[0] != 0:
-            game_msg = self.update_message(msg)
+            game_msg = self.update_message(msg,mode)
             bg_clean.blit(game_msg,(dungeon_pos[0],dungeon_pos[1]-40)) #starts same place as dungeon, Y -40
 
         bg_clean.blit(render_stat_msg, (dungeon_pos[0], dungeon_pos[1]+356)) #starts same place as dungeon, Y +396
@@ -984,14 +1037,14 @@ class Graphics:
 
         return bg_clean
 
-    def update_graphics(self,env,action_list):
+    def update_graphics(self,env,mode):
 
-        big_monitor = self.update_main_monitor(env)
+        big_monitor = self.update_main_monitor(env,mode)
         
-        if len(action_list)>=1:
-            small_monitor = self.update_small_monitor(action_list)
+        if len(self.action_list)>=1:
+            small_monitor = self.update_small_monitor()
             self.images.screen.blit(small_monitor,self.images.pos["small_content_left_corner"])
-            
+        
         self.images.screen.blit(big_monitor, self.images.pos["big_content_left_corner"])
         pygame.display.update([self.big_content_update_rect,self.small_content_update_rect])
 
@@ -1040,9 +1093,8 @@ class Graphics:
         pygame.display.flip()
         return bg_surface
 
-    def background_anim(self,menu:MenuVertical|MenuHorizontal,bg_anim:spritesheet.Animation,assets:list,top_layer):
+    def background_anim(self,menu:MenuVertical|MenuHorizontal,bg_anim:spritesheet.Animation,top_layer):
         animated_assets = []
-        
         key_1_obj = (menu.prev_key,menu.prev_key_pos)
         key_2_obj =(menu.cur_key,menu.cur_key_pos)
         animated_assets = [key_1_obj,key_2_obj] #deleted obj out 
@@ -1052,23 +1104,28 @@ class Graphics:
             obj =(inner_anim,menu.cur_cursor_pos)
             animated_assets.append(obj)
         
-        all_assets = assets + animated_assets
+        all_assets = menu.assets + animated_assets
+        
+        if bg_anim.filename == "assets/menu_bg_anim.png":
+            all_assets += [(self.images.images['nle_logo_menu'],self.images.pos['menu_text'])]
+
         
         #make something to handle having all the screen assets in one tuple list
         bg_anim.loop_animate(self.images.surfaces['big_monitor_fs_surface'],all_assets,top_layer,self.images.pos['big_monitor_fs_left_corner'],self.big_monitor_fs_update_rect,self.images.screen)
+
+
 
 class Game:
     def __init__(self):
         pygame.init()
         self.data_file = 'data.json'
         self.images, self.controller,  self.graphics  , self.sound = self.load_data()
-        self.action_list = []
-        self.action_list_max_size = 10
-        self.msg_max_size = 60      #big screen can fit around 75-ish
         self.env = self.env_init()
         self.clock = pygame.time.Clock()
         self.board = Leaderboard(self.images,self.graphics.small_content_update_rect)
         self.joystick_sound = [self.sound.files['joystick_1'],self.sound.files['joystick_2']]
+        self.main_menu_assets = [(self.images.images['nle_logo_menu'],self.images.pos['menu_text'])]
+        self.game_over_assets = [(self.images.images['play_again'],(0,0))]
         pygame.display.set_caption("NetHack Prolog Agent")
         pygame.display.set_icon(self.images.images['icon'])
         self.main_menu()
@@ -1092,6 +1149,16 @@ class Game:
                                             'button_pos'  : controller.controller_set['buttons'].button_pos}
         
         return Graphics(stat_keys,stats_to_print,graphic_assets,images,sound)
+
+    def display_inv(self):
+        
+        inv_strs = self.env.unwrapped.last_observation[7]  
+        inv_letters = self.env.unwrapped.last_observation[8]  
+
+        for letter, line in zip(inv_letters, inv_strs):
+            if np.all(line == 0):
+                break
+            print(letter.tobytes().decode("utf-8"), line.tobytes().decode("utf-8"))
 
     def env_init(self):
         #max episode steps defaults to 5000
@@ -1135,8 +1202,8 @@ class Game:
         self.game_over()
 
     def init_prolog_game(self):
-        self.graphics.update_action_list(self.action_list)
-        self.graphics.update_graphics(self.env,self.action_list)
+        self.graphics.update_action_list()
+        self.graphics.update_graphics(self.env,1)
         self.sound.files['game'].play(-1,fade_ms=5000)
 
     def prolog_move(self,key_name):
@@ -1148,10 +1215,10 @@ class Game:
                 #fazer um getter para isto, já agora, é por isto que estava a andar 2 vezes pro lado
                 controller_type: Joystick | Keypad | MenuVertical = self.controller.get_controller_type(key_name)            #controller.joystick or controller.keypad
                 
-                step_res = controller_type.press_key(self.env,key_name,self.clock)
-                self.graphics.update_graphics(self.env,self.action_list)
+                step_res = controller_type.press_key(self.env,key_name,self.clock,1)
+                self.graphics.update_graphics(self.env,1)
             else:
-                step_res = self.env.step(self.controller.keys[key_name].nle_move)
+                step_res = self.env.step(self.controller.keys[key_name].nle_move) #type: ignore
 
             if self.env.unwrapped.last_observation[14][0]: # type: ignore
                 return False
@@ -1168,49 +1235,19 @@ class Game:
         
         return step_res
 
-    def start_game(self):
+    def start_game(self,action):
         self.env = self.env_init()
-        self.init_prolog()
-        #self.play_game()
-
-    def output_text(self,text):
-        msg_2 = ""
-
-        if len(text) > self.msg_max_size:
-            ind = self.msg_max_size-1
-            if text[ind] != ' ':
-                for i in range(ind,0,-1):
-                    if text[i] == ' ':
-                        ind = i
-                        break 
-            
-            msg_2 = text[ind+1:]
-            text = text[:ind]
-
-        free_space = self.action_list_max_size-len(self.action_list)
-
-        if msg_2!='': 
-            if free_space<2:
-                if free_space ==1:
-                    self.action_list.pop(0)
-                else:
-                    self.action_list.pop(0)
-                    self.action_list.pop(0)
-
-
-            self.action_list.append(msg_2)
-
-        if free_space == 0:
-            self.action_list.pop(0)
         
-        self.action_list.append(text)
-        self.graphics.update_action_list(self.action_list)
+        if action==1:
+            self.play_game()
+        else:
+            self.init_prolog()
 
     def quit_game(self):
         pygame.quit()
         sys.exit()
 
-    def menu_screen_behaviour(self,animation,menu:MenuVertical|MenuHorizontal,assets,top_layer,action,action_trigger,action_ticks,running):
+    def menu_screen_behaviour(self,animation,menu:MenuVertical|MenuHorizontal,top_layer,action,action_trigger,action_ticks,running,selection):
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -1240,18 +1277,29 @@ class Game:
                         #sound here
                     case pygame.K_RETURN:
                         self.sound.files['sellect'].play()
-                        self.sound.files['main_menu'].fadeout(7000)
-                        animation.set_fade_out(animation.fade_surface)
-                        if not menu.who_is_pressed:
-                            self.sound.files['coin'].play().set_volume(1.0)
-                            action_trigger = True 
-                            action = 0
-                            break
+                        if not selection:
+                            if not menu.who_is_pressed:
+                                    menu = self.controller.controller_set['pick_agent_menu']
+                                    selection = True
+                                    break
+                            else:
+                                self.sound.files['main_menu'].fadeout(7000)
+                                animation.set_fade_out(animation.fade_surface)
+                                action_trigger = True 
+                                action = 0
+                                break
                         else:
+                            self.sound.files['coin'].play().set_volume(1.0)
+                            self.sound.files['main_menu'].fadeout(7000)
+                            animation.set_fade_out(animation.fade_surface)
                             action_trigger = True 
-                            action = 1
-                            break
-                
+                            if not menu.who_is_pressed:
+                                action = 1
+                                break
+                            else:
+                                action = 2
+                                break
+                                
                 if type(menu) == MenuHorizontal:
                     if event.key == pygame.K_KP_4 or event.key == pygame.K_LEFT:
                         menu.toggle_key(1)
@@ -1275,7 +1323,7 @@ class Game:
         #OUTSIDE OF EVENT LOOP -> handle kept states and updates
         
         #animated elements        
-        self.graphics.background_anim(menu,animation,assets,top_layer)
+        self.graphics.background_anim(menu,animation,top_layer)
         self.board.small_screen_iddle()
         self.controller.controller_set['special'].loop_animation()
         self.controller.controller_set['joystick'].loop_animation()
@@ -1303,56 +1351,61 @@ class Game:
                 action_ticks-=1
             else:
                 if not action:
-                    self.start_game()
-                else:
+                    #turn of sound
                     running = False
+                else:
+                    self.start_game(action)
         
-        return action,action_trigger,action_ticks,running
+        return action,action_trigger,action_ticks,running,selection,menu
 
     def game_over(self):        
         self.controller.controller_set['special'].set_iddle('space')
         self.sound.files['game_over'].play(fade_ms=1000).set_volume(0.5)
         self.graphics.game_over_screen()
         #get reason for game_over
-        end_reason = self.env.unwrapped.nethack.how_done()
-        txt = 'You ' + end_reason
+        end_reason:nle= self.env.unwrapped.nethack.how_done() #type: ignore
+        txt = 'You ' + str(end_reason)
         txt_surface = self.graphics.render_text(txt,20,"#F0EAD6")
-
-        assets = [(self.images.images['play_again'],(0,0)),(txt_surface,(0,100))]
+        
+        #assets = [(self.images.images['play_again'],(0,0)),(txt_surface,(0,100))]
         animation = self.images.animations['game_over_bg']
         top_layer = (self.images.surfaces['big_overlay_cut_fs'],(0,0))
         running = True 
         menu = self.controller.controller_set['end_menu']
+
+        menu.assets.append((txt_surface,(300,200)))
         action_trigger = False 
         action_ticks = 380
         action = 0
+        selection = False
+        #self.env.reset() #type: ignore
         while running:
             self.clock.tick(60)
-            action, action_trigger, action_ticks, running = self.menu_screen_behaviour(animation,menu,assets,top_layer,action,action_trigger,action_ticks,running)
-        
-        pygame.quit()
+            action, action_trigger, action_ticks, running, selection,menu = self.menu_screen_behaviour(animation,menu,top_layer,action,action_trigger,action_ticks,running,selection)
+
+        self.quit_game()
 
     def play_game(self):
         self.sound.files['game'].play(-1,fade_ms=3000)
         running = True
 
-        self.graphics.update_graphics(self.env,self.action_list)
+        self.graphics.update_graphics(self.env,0)
         #clear graphics
-        self.graphics.update_small_monitor(self.action_list)
+        self.graphics.update_small_monitor()
+        
         while running:
             self.clock.tick(60)
 
             for event in pygame.event.get():
 
                 if event.type == pygame.QUIT:
-                    #quit_game()
-                    running = False
+                    self.quit_game()
                     break
                 if event.type == pygame.VIDEORESIZE:
-                    self.graphics.screen = pygame.display.set_mode((event.w, event.h),pygame.RESIZABLE,display=0)
-                
+                    self.images.screen.blit(self.graphics.bg_surface, (0, 0))
+                    pygame.display.update()
                 if event.type == pygame.VIDEOEXPOSE:
-                    self.graphics.screen.blit(self.graphics.bg_surface, (0, 0))
+                    self.images.screen.blit(self.graphics.bg_surface, (0, 0))
                     pygame.display.update()
 
                 if event.type == pygame.KEYDOWN:
@@ -1368,29 +1421,36 @@ class Game:
                         case pygame.K_1:
                             self.graphics.screen_toggle()
                             break
-                    
+                        case pygame.K_i:
+                            self.display_inv()
+                            break 
+
                     if key_name in self.controller.keys:
                         if self.controller.keys[key_name].has_graphics:
                         
                             #fazer um getter para isto, já agora, é por isto que estava a andar 2 vezes pro lado
                             controller_type: Joystick | Keypad | MenuVertical = self.controller.get_controller_type(key_name)            #controller.joystick or controller.keypad
                             
-                            self.env = controller_type.press_key(self.env,key_name,self.clock)
-                            self.graphics.update_graphics(self.env,self.action_list)
+                            controller_type.press_key(self.env,key_name,self.clock,0)
                         else:
-                            self.env.step(self.controller.keys[key_name].nle_move)
+                            self.env.step(self.controller.keys[key_name].nle_move)  #type: ignore
                         
+                        self.graphics.update_graphics(self.env,0)
+
                         if self.env.unwrapped.last_observation[14][0] == running: # type: ignore
                             running = False 
+                            pygame.mixer.music.fadeout(1000)
+                            self.sound.files['game_over'].play()
                             break
             #OUTSIDE OF EVENT LOOP -> handle kept states and updates
             if self.controller.controller_set['joystick'].is_pressed:
                 
                 pressed = pygame.key.get_pressed()
                 if pressed[pygame.key.key_code(self.controller.controller_set['joystick'].key_pressed)]:
+                    pass
                     #comment this line for agent
-                    self.env.step(self.controller.controller_set['joystick'].key_dict[self.controller.controller_set['joystick'].key_pressed].nle_move) #type: ignore
-                    self.graphics.update_graphics(self.env,self.action_list)
+                    #self.env.step(self.controller.controller_set['joystick'].key_dict[self.controller.controller_set['joystick'].key_pressed].nle_move) #type: ignore
+                    #self.graphics.update_graphics(self.env,0)
                 else:
                     self.controller.controller_set['joystick'].release_key(self.clock)
                 
@@ -1405,13 +1465,14 @@ class Game:
 
                     self.controller.controller_set['buttons'].release_key(self.clock)
 
-        pygame.mixer.music.fadeout(1000)
-        
+        #pygame.mixer.music.fadeout(1000)
+        #debug to see if game really ended
+        pygame.time.wait(1000)
         self.game_over()
 
     def main_menu(self):
         
-        main_menu_assets = [(self.images.images['nle_logo_menu'],self.images.pos['menu_text'])]
+        #main_menu_assets = [(self.images.images['nle_logo_menu'],self.images.pos['menu_text'])]
         menu = self.controller.controller_set['menu']
         bg_anim = self.images.animations["main_menu_bg"]
         top_layer = (self.images.surfaces['big_overlay_cut_fs'],(0,0))
@@ -1419,18 +1480,18 @@ class Game:
         action_ticks:int = 380
         action = 0
         running:bool = True
-        
+        selection = False
         self.controller.controller_set['special'].set_iddle('space')
         #sound
         self.sound.files['main_menu'].play(-1,fade_ms=7000).set_volume(0.4)
 
         while running:
             self.clock.tick(60)
-            action, action_trigger,action_ticks,running = self.menu_screen_behaviour(bg_anim,menu,main_menu_assets,top_layer,action,action_trigger,action_ticks,running)
+            action, action_trigger,action_ticks,running,selection,menu = self.menu_screen_behaviour(bg_anim,menu,top_layer,action,action_trigger,action_ticks,running,selection)
 
         pygame.quit()
 
-# mode de jogo humano ou agent
+# mode de jogo humano ou agent      - parcialmente feito. texto nao aparece
 # indicador das keys para os botões
 # overlay togle para ver as keys/acções
 # algo para guardar os melhores scores quer dos players quer do agent
@@ -1442,6 +1503,8 @@ class Game:
 #   - é preciso ver que a fome tá num sitio diferente daquele que inicialmente esperado. usar o mesmo que ta a ser usado no interface
 #   - as diagonais estão só a ser realizadas dentro de corredores, de tile de chão de corredor para tile de chão de corredor
 #   - não está a empurrar boulders, boulders não estão na valid list.
-#  added reason for game_over to game_over screen
+#  added reason for game_over to game_over screen - it's returning: game_end_types.DIED
+# portas: 1 abre, 2 entra na porta
+# door resists: não abre, mas pode não ser preciso kickar ? só insistir até abrir?
 if __name__ == '__main__':
     Game()

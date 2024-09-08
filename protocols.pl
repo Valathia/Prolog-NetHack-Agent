@@ -634,6 +634,7 @@ pick_protocol_2(ENV,[(X1,Y1),(X2,Y2)],GOAL,_,DATA,GAME):-
 %         get_elem(TRANSLATED_MATRIX,X2,Y2,'monster'),                 %gets glyph in square to check what objective it is (the objective might have moved (monsters or items, something could be in the way as well))
 %         pick_protocol_2(ENV,[(X1,Y1),(X2,Y2)],GOAL,'monster',DATA). %picks protocol propper
 
+pick_protocol(_,[],_,_,_).
 
 pick_protocol(ENV,[(X1,Y1),(X2,Y2)],GOAL,DATA,GAME):-
         %move('_SEARCH_', ENV, TEMP_DATA),           %does a search to get new data
