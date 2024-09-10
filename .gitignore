@@ -18,3 +18,5 @@ pygame_key_testing.py
 test_copy.py
 test_min.py
 translated_matrix.txt
+assets/Sound/.DS_Store
+empty_leaderboard.json

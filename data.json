@@ -130,6 +130,45 @@
         },
         "dog_way": {
             "file": "assets/Sound/dog_bark.mp3"
+        },
+        "footsteps": {
+            "file": "assets/Sound/footsteps.mp3"
+        },
+        "counting": {
+            "file": "assets/Sound/counting.mp3"
+        },
+        "thunder":  {
+            "file": "assets/Sound/thunder.mp3"
+        },
+        "crashing_rock": {
+            "file": "assets/Sound/crashing_rock.mp3"
+        },
+        "rock_push": {
+            "file": "assets/Sound/rock_push.mp3"
+        },
+        "howling": {
+            "file": "assets/Sound/howling.mp3"
+        },
+        "splashing": {
+            "file": "assets/Sound/splash.mp3"
+        },
+        "bugle": {
+            "file": "assets/Sound/bugle.mp3"
+        },
+        "shutdown": {
+            "file": "assets/Sound/shut_down.mp3" 
+        },
+        "wrong": {
+            "file": "assets/Sound/wrong.mp3" 
+        },
+        "highscore": {
+            "file": "assets/Sound/highscore.mp3" 
+        },
+        "zap": {
+            "file": "assets/Sound/zap.mp3" 
+        },
+        "heal": {
+            "file": "assets/Sound/heal.mp3" 
         }
     },
     "action_map": {
@@ -147,7 +186,8 @@
             "is_full_strip": false, 
             "is_mirrored" : true,
             "frame_size": 200,
-            "controller": "joystick"
+            "controller": "joystick",
+            "is_symmetric": true
         },
         "[2]": { 
             "nle_move": 3,
@@ -157,7 +197,8 @@
             "is_full_strip": false, 
             "is_mirrored" : false,
             "frame_size": 200,
-            "controller": "joystick"
+            "controller": "joystick",
+            "is_symmetric": true
         },
         "[3]": {
             "nle_move": 6,
@@ -167,7 +208,8 @@
             "is_full_strip": false, 
             "is_mirrored" : false,
             "frame_size": 200,
-            "controller": "joystick"
+            "controller": "joystick",
+            "is_symmetric": true
         },
         "[4]": {
             "nle_move": 4,
@@ -177,7 +219,8 @@
             "is_full_strip": false, 
             "is_mirrored" : true,
             "frame_size": 200,
-            "controller": "joystick"
+            "controller": "joystick",
+            "is_symmetric": true
         },
         "[6]": {
             "nle_move": 2,
@@ -187,7 +230,8 @@
             "is_full_strip": false, 
             "is_mirrored" : false,
             "frame_size": 200,
-            "controller": "joystick"
+            "controller": "joystick",
+            "is_symmetric": true
         },
         "[7]": {
             "nle_move": 8,
@@ -197,7 +241,8 @@
             "is_full_strip": false, 
             "is_mirrored" : true,
             "frame_size": 200,
-            "controller": "joystick"
+            "controller": "joystick",
+            "is_symmetric": true
         },
         "[8]": {
             "nle_move": 1,
@@ -207,7 +252,8 @@
             "is_full_strip": false, 
             "is_mirrored" : false,
             "frame_size": 200,
-            "controller": "joystick"
+            "controller": "joystick",
+            "is_symmetric": true
         },
         "[9]": {
             "nle_move": 5,
@@ -217,7 +263,8 @@
             "is_full_strip": false, 
             "is_mirrored" : false,
             "frame_size": 200,
-            "controller": "joystick"
+            "controller": "joystick",
+            "is_symmetric": true
         },
         "up": {
             "nle_move": 9,
@@ -293,7 +340,8 @@
             "is_full_strip": false, 
             "is_mirrored" : false,
             "frame_size": 340,
-            "controller": "menu"
+            "controller": "menu",
+            "is_symmetric": true
         },
         "quit": {
             "nle_move": -1,
@@ -303,7 +351,8 @@
             "is_full_strip": false, 
             "is_mirrored" : false,
             "frame_size": 340,
-            "controller": "menu"
+            "controller": "menu",
+            "is_symmetric": true
         },
         "space": {
             "nle_move": -1,
@@ -313,7 +362,8 @@
             "is_full_strip": false, 
             "is_mirrored" : false,
             "frame_size": 85,
-            "controller": "special"
+            "controller": "special",
+            "is_symmetric": true
         },
         "yes": {
             "nle_move": -1,
@@ -323,7 +373,8 @@
             "is_full_strip": false, 
             "is_mirrored" : false,
             "frame_size": 150,
-            "controller": "end_menu"
+            "controller": "end_menu",
+            "is_symmetric": true
         },
         "no": {
             "nle_move": -1,
@@ -333,7 +384,8 @@
             "is_full_strip": false, 
             "is_mirrored" : false,
             "frame_size": 150,
-            "controller": "end_menu"
+            "controller": "end_menu",
+            "is_symmetric": true
         },
         "human": {
             "nle_move": -1,
@@ -343,7 +395,8 @@
             "is_full_strip": false, 
             "is_mirrored" : false,
             "frame_size": 300,
-            "controller": "pick_agent_menu"
+            "controller": "pick_agent_menu",
+            "is_symmetric": true
         },        
         "prolog": {
             "nle_move": -1,
@@ -353,7 +406,8 @@
             "is_full_strip": false, 
             "is_mirrored" : false,
             "frame_size": 300,
-            "controller": "pick_agent_menu"
+            "controller": "pick_agent_menu",
+            "is_symmetric": true
         }
     },
     "positioning": {
@@ -375,7 +429,7 @@
 
         "menu_button_size": [340,99],
         "menu_button_offset": [500,200],
-        "end_menu_offset": [472,352],
+        "end_menu_offset": [472,382],
         "end_button_size": [150,35],
         "end_menu": [200,200],
 
@@ -385,7 +439,8 @@
         "joystick_offset": [-740,300],
         "joystick_size": [200,200],
         "play_again_pos": [437,259],
-        "default": [0,0]
+        "default": [0,0],
+        "try": [0,30]
     },
     "images": {
         "icon": {
@@ -415,6 +470,13 @@
         },
         "pick_agent": {
             "file":"assets/pick_an_agent.png" 
+        },
+        "highscore_header": 
+        {
+            "file":"assets/highscore_header.png" 
+        },
+        "new_highscore": {
+            "file":"assets/new_highscore.png" 
         }
     },
     "surfaces": {
@@ -462,7 +524,8 @@
             "is_mirrored": false,
             "init_fade_in": true,
             "init_fade_out": false,
-            "fade_in_surface": "big_monitor_fs_surface"
+            "fade_in_surface": "big_monitor_fs_surface",
+            "is_symmetric": true
         },
         "buttons_ss": {
             "file": "assets/n_sei_que_mais_fazer_sad_face.png",
@@ -470,7 +533,8 @@
             "is_full_strip": false,
             "is_mirrored": false,
             "init_fade_in": false,
-            "init_fade_out": false
+            "init_fade_out": false,
+            "is_symmetric": true
         },
         "arrow": {
             "file": "assets/arrow.png",
@@ -478,7 +542,8 @@
             "is_full_strip": false,
             "is_mirrored": false,
             "init_fade_in": false,
-            "init_fade_out": false
+            "init_fade_out": false,
+            "is_symmetric": true
         },
         "game_over_bg": {
             "file": "assets/game_over_anim.png",
@@ -487,7 +552,18 @@
             "is_mirrored": false,
             "init_fade_in": true,
             "init_fade_out": false,
-            "fade_in_surface": "big_monitor_fs_surface"
+            "fade_in_surface": "big_monitor_fs_surface",
+            "is_symmetric": true
+        },
+        "highscore_bg": {
+            "file": "assets/highscore_bg.png",
+            "frame_width": 1330,
+            "is_full_strip": true,
+            "is_mirrored": false,
+            "init_fade_in": true,
+            "init_fade_out": false,
+            "fade_in_surface": "big_monitor_fs_surface",
+            "is_symmetric": false
         }
     },
     "asset_groups": {
@@ -565,7 +641,7 @@
             "pos_key": "end_base",
             "size": "end_button_size",
             "type": 3,
-            "assets": ["play_again","default"]
+            "assets": ["play_again","try"]
         },
         "pick_agent_menu": {
         "base": "default",

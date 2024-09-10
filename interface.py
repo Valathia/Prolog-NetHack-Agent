@@ -1,5 +1,5 @@
-import nle.env
 import nle.env.tasks
+import nle.nethack
 import pygame, sys
 import numpy as np
 import spritesheet
@@ -7,7 +7,6 @@ import nle
 import nle.nethack as nethack
 import json
 import janus_swi as janus
-import random
 import gymnasium as gym
 #gym = nle.nle.env.gym
 janus.consult('./main.pl',module='main')
@@ -63,30 +62,65 @@ class Sound:
             "[9]":self.files['joystick_2']
         }
         self.msg_sounds = {
+            #doors
             "As you kick the door" : self.files['door_slam'],
             "WHAM" : self.files['door_resist'],
             "door resists": self.files['door_resist'],
-            "$": self.files['collect_coin'],
+            'kick at empty': self.files['miss'],
+            "The door opens.":self.files['door_open'],
+            #combat
             "hits!": self.files['take_bump'],
+            "bites!":  self.files['take_bump'],
             "You are hit": self.files['take_bump'],
-            "kill": self.files['monster_death'],
+            "You kill": self.files['monster_death'],
+            "killed": self.files['monster_death'],
             "destroy": self.files['monster_death'],
+            "You miss ": self.files['miss'],
+            "misses": self.files['miss'],
+            "zaps": self.files['zap'],
+            "zap.": self.files['zap'],
+            #message sfx
             "gurgling": self.files["fountain"],
             "cash register": self.files["chime"],
-            "F note": self.files["fa"],
-            "is delicious!": self.files['eat'],
+            "You hear water falling on coins.": self.files["fountain"],
+            "bubbling water":self.files["fountain"],
+            "splashing": self.files["splashing"],
+            'counting money': self.files['counting'],
             "hear a door open": self.files['door_open'],
-            "You miss ": self.files['miss'],
-            "misses":self.files['miss'],
-            'kick at empty': self.files['miss'],
+            "hear the footsteps": self.files['footsteps'],
+            "thunder" :  self.files['thunder'],
+            "crashing rock" : self.files['crashing_rock'],
+            "rock falls on your head!": self.files['crashing_rock'],
+            "howling": self.files['howling'],
+            'reveille': self.files['bugle'],
+            "You hear a chugging sound.": self.files['heal'],
+            #music trap
+            "F note": self.files["fa"],
+            #food
+            "is delicious!": self.files['eat'],
+            "yummy":self.files['eat'],
+            "You discard the open tin.": self.files['eat'],
+            "Delicious!":self.files['eat'],
+            "finish eating":self.files['eat'],
+            "stop eating":self.files['eat'],
+            "completely healed." :self.files['heal'],
+            "You feel much better.":self.files['heal'],
+            #Blecch!
+            #path sfx
             'hidden': self.files['hidden'],
             "solid stone":self.files['bonk'],
             "a wall": self.files['bonk'],
-            "experience level": self.files['level_up'],
+            #misc
+            "Welcome to experience level": self.files['level_up'],
+            #"healthy!": self.files['level_up'], #message displayed when monk levels up to level 3
+            "$": self.files['collect_coin'],
+            "you move the boulder": self.files['rock_push'],
+            #pet
             "swap places": self.files['cat'],
             "You stop.  Your kitten": self.files['cat_way'],
             "You stop.  Your little": self.files['dog_way']
         }
+        self.limit_time = ['fountain','hear a door open','The door opens.','counting money',"You hear water falling on coins.","bubbling water"]
 
     def init_sound(self,sound_dict):
         new_dict:dict[str,pygame.mixer.Sound] = {}
@@ -113,11 +147,14 @@ class Sound:
     def msg_sfx(self,msg):
         for keys in self.msg_sounds:
             if keys in msg:
-                if keys == 'fountain' or keys=='hear a door open':
+                if keys in self.limit_time:
                     self.msg_sounds[keys].play(maxtime=3000)
+                elif keys == 'footsteps':
+                    self.msg_sounds[keys].play().fadeout(10000)
+                elif keys == 'reveille':
+                    self.msg_sounds[keys].play(maxtime=8000)
                 else:    
                     self.msg_sounds[keys].play()
-                    break
 
 class ImageBin:
     def __init__(self,positioning,images,surfaces,animations):
@@ -169,15 +206,15 @@ class ImageBin:
         anim_dict:dict[str,spritesheet.Animation] = {}
         for key in animation_dict:
             key_dict = animation_dict[key]
-            anim_dict[key] = spritesheet.Animation(key_dict["file"],key_dict["frame_width"],key_dict["is_full_strip"],key_dict["is_mirrored"])
+            anim_dict[key] = spritesheet.Animation(key_dict["file"],key_dict["frame_width"],key_dict["is_full_strip"],key_dict["is_mirrored"],key_dict["is_symmetric"])
             
             if key_dict['init_fade_in']:
                 surface_key = key_dict["fade_in_surface"]
-                anim_dict[key].set_fade_in(self.surfaces[surface_key])
+                anim_dict[key].set_fade_in(self.surfaces[surface_key],True)
             
             if key_dict['init_fade_out']:
                 surface_key = key_dict["fade_out_surface"]
-                anim_dict[key].set_fade_out(self.surfaces[surface_key])
+                anim_dict[key].set_fade_out(self.surfaces[surface_key],True)
 
         return anim_dict
     
@@ -204,7 +241,7 @@ class Keys:
 class Directional(Keys):
     def __init__(self, dict):
         super().__init__(dict)
-        self.anim_ss = spritesheet.Animation(dict["file"],dict["frame_size"],dict["is_full_strip"],dict["is_mirrored"]) 
+        self.anim_ss = spritesheet.Animation(dict["file"],dict["frame_size"],dict["is_full_strip"],dict["is_mirrored"],dict["is_symmetric"]) 
 
 class Buttons(Keys):
     def __init__(self, dict):
@@ -218,7 +255,6 @@ class Special(Directional,Buttons):
         super().__init__(dict)
 
 #Keyset of animated keys of same type
-
 class Joypad:
     def __init__(self,key_dict,w,h,images):
         self.key_dict:dict[str,Buttons]|dict[str,Directional] = key_dict
@@ -249,7 +285,7 @@ class Joypad:
             self.images.screen.blit(aux,base_pos)
             pygame.display.update(update_rect)
         
-    def press_key(self,env,key,clock,mode):
+    def press_key(self,env,key,clock,mode)->tuple: #type: ignore
         pass
 
     def release_key(self,clock):
@@ -338,7 +374,7 @@ class Joystick(Joypad):
         self.is_pressed = True 
         self.key_pressed = key
 
-    def press_key(self,env,key,clock,mode):
+    def press_key(self,env,key,clock,mode)-> tuple:
         #for agent: let env.step should be performed here -- no need for checking if pressed though
 
         if self.is_pressed:
@@ -351,9 +387,9 @@ class Joystick(Joypad):
         self.is_pressed = True 
         self.key_pressed = key
 
-        if mode:
-            step_res = env.step(self.key_dict[key].nle_move)
-            return step_res
+        #if mode:
+        step_res = env.step(self.key_dict[key].nle_move)
+        return step_res
 
     def release_key(self,clock):
         if self.is_pressed:
@@ -376,10 +412,10 @@ class Keypad(Joypad):
         self.init_buttons(self.button_rect,'update_rect')
         self.init_buttons(self.clean_matrix,'bg_clean')
 
-    def press_key(self,env,key,clock,mode):
+    def press_key(self,env,key,clock,mode)->tuple:
         #change this for only 1 input at a time for agent (no pressing)
         #if self.is_pressed:
-        step_res = env.step(self.key_dict[key].nle_move)
+        step_res:tuple = env.step(self.key_dict[key].nle_move)
 
         if key != self.key_pressed:
             if self.is_pressed:
@@ -744,19 +780,33 @@ class Dungeon:
                             #CMAP starts at 2359,
                             #diferent walls for specific dungeons/levels are unacounted for (33) walls
                             #gnomish mine wall range in bitmap 1038 - 1048
-
-                            if n>= 2360 and n<=2370 and dungeon_num == 2:
-                                n -= 2360
-                                n+= 1038
+                            if n>= 2360 and n<=2370:
+                                match(dungeon_num):
+                                    case 1:
+                                        #Gehennom - unsure
+                                        n -= 2360
+                                        n += 1049
+                                    case 2:
+                                        #gnomish mines
+                                        n -= 2360
+                                        n += 1038
+                                    case 3:
+                                        #Ft. Ludios - unsure
+                                        n -= 2360
+                                        n += 1060
+                                    case 4:
+                                        #sokoban
+                                        n -= 2360
+                                        n += 1071
+                                    case _:
+                                        n -= 1509
                             else:
                                 n -= 1509
                     #2541 Swallow for monsters is unacounted for, it's 8 per monster. 
-
                     #adjust warning glyphs - 1st warning glyph is 1032 on  the bitmap
                     elif (n<5595):
                         n-=4557
-                    
-                    
+
                     #account for n possibly being a statue                
                     n += n_statue
                     
@@ -772,6 +822,7 @@ class Leaderboard:
         self.cur_frame = 0
         self.cur_index = 0
         self.fps = 60
+        self.file = 'leaderboard.json'
         self.cur_list = []
         self.small_font = pygame.font.Font("assets/font.ttf", 15)
         self.header = pygame.font.Font("assets/font.ttf", 30).render('High Scores',True, "#ff742f")
@@ -781,15 +832,101 @@ class Leaderboard:
         self.images = images
         self.size = len(self.board)
         self.small_content_update_rect = small_content_update_rect
+        self.offset = self.init_offset()
+        self.bg_anim = self.images.animations['highscore_bg']
+        self.assets = [(self.images.images['highscore_header'],(0,0)),(self.images.images['new_highscore'],(0,0))]
+        self.json_keys = ['RANK','NAME','LVL','SCORE']
 
-    def init_leaderboard(self) -> list[str]:
-        board = []
-        f = open('leaderboard.txt')
-        for line in f:
-            board.append(line[:-1])
-        
-        f.close()
+    def init_leaderboard(self):
+        board = [['RANK','NAME','LVL','SCORE']]
+        file = open(self.file)
+        data = json.load(file)
+        for keys in data:
+            obj = data[keys]
+            line = [keys,obj['NAME'],obj['LVL'],obj['SCORE']]
+            board.append(line)
+        file.close()
         return board
+    
+    def init_offset(self):
+        headers = self.board[0]
+        offset:list[int] = []
+        x_pos = 0
+        for i in range(len(headers)):
+            render_text = self.small_font.render(headers[i],True,"#F0EAD6")
+            mid_pos = 143+render_text.get_width()
+            offset.append(mid_pos+x_pos)
+            x_pos += render_text.get_width() + 30
+
+        return offset
+
+    def lvl_comp(self,lvl,index):
+        if lvl > self.board[index][2]:
+            return index 
+        else:
+            return index + 1
+
+    def search(self,score,lvl,i,j)-> int:
+        score_index = 3
+        mid = i + (j-i) // 2
+
+        mid_score = self.board[mid][score_index]
+
+        if mid_score == score:
+            return self.lvl_comp(lvl,mid)
+
+        if score > mid_score:
+            j = mid - 1
+        elif score < mid_score:
+            i = mid + 1
+        
+        if j==0:
+            return 1
+
+        if i==15:
+            return 16
+        # if j==1:
+        #     if  score == self.board[j][score_index]:
+        #         return self.lvl_comp(lvl,j)
+        #     elif score > self.board[j][score_index]:
+        #         return j 
+        #     else:
+        #         return j+1
+            
+        return self.search(score,lvl,i,j)            
+
+    def is_highscore(self,score):
+        last = len(self.board) - 1
+        if score >= self.board[last][3]:
+            return True
+        else:
+            return False 
+
+    def insert_name(self,name,index):
+        self.board[index][1] = name
+
+    def insert_highscore(self,score,lvl,name):
+        index:int = self.search(score,lvl,1,self.size-1)
+        print(index)
+        old_name = self.board[index][1]
+        old_level = self.board[index][2]
+        old_score = self.board[index][3]
+        self.board[index][1] = name 
+        self.board[index][2] = lvl 
+        self.board[index][3] = score
+
+        for i in range(index+1,self.size):
+            aux_name = self.board[i][1]
+            aux_level = self.board[i][2]
+            aux_score = self.board[i][3]
+            self.board[i][1] = old_name
+            self.board[i][2] = old_level 
+            self.board[i][3] = old_score
+            old_name = aux_name
+            old_level = aux_level
+            old_score = aux_score
+        
+        return index
 
     def small_screen_iddle_append(self):
         
@@ -797,6 +934,7 @@ class Leaderboard:
         bg_clean = pygame.Surface.copy(self.images.surfaces['small_content_surface'])
 
         header = True
+        aux = ''
         for i in range (self.cur_index):
             self.cur_list.append(self.board[i])
         
@@ -819,15 +957,16 @@ class Leaderboard:
                 render_start = 0
                 #print('back to zero')
 
-        if header:                
+        if header:
             bg_clean.blit(self.header, (self.header_pos, render_start))
             render_start += self.header_space
 
         for i in range(len(self.cur_list)):
             #print(self.cur_list[i])
-            render_text = self.small_font.render(self.cur_list[i],True,"#F0EAD6")
-            mid_pos = 308- render_text.get_rect().centerx
-            bg_clean.blit(render_text,(mid_pos,render_start))
+            for j in range(len(self.cur_list[i])):
+                render_text = self.small_font.render(str(self.cur_list[i][j]),True,"#F0EAD6")
+                bg_clean.blit(render_text,(self.offset[j]-render_text.get_width(),render_start))
+            
             render_start += 20
         
 
@@ -842,10 +981,9 @@ class Leaderboard:
             render_start = 0
 
             for i in range(len(self.cur_list)):
-                #print(self.cur_list[i])
-                render_text = self.small_font.render(self.cur_list[i],True,"#F0EAD6")
-                mid_pos = 308-render_text.get_rect().centerx
-                bg_clean.blit(render_text,(mid_pos,render_start))
+                for j in range(len(self.cur_list[i])):
+                    render_text = self.small_font.render(str(self.cur_list[i][j]),True,"#F0EAD6")
+                    bg_clean.blit(render_text,(self.offset[j]-render_text.get_width(),render_start))
                 render_start += 20
             
             bg_clean.blit(self.images.surfaces['small_overlay_cut'],(0,0))
@@ -867,6 +1005,18 @@ class Leaderboard:
                 self.cur_index +=1
 
         self.cur_frame += 1
+
+    def update_json(self):
+        f = open(self.file,'r')
+        data = json.load(f)
+        f.close()
+
+        for i in range(1,len(self.board)):
+            for j in range (1,len(self.board[i])):
+                data[self.board[i][0]][self.json_keys[j]] = self.board[i][j]
+        f = open(self.file, "w+")
+        json.dump(data,f)
+        f.close()
 
 class Graphics:
 
@@ -1113,8 +1263,6 @@ class Graphics:
         #make something to handle having all the screen assets in one tuple list
         bg_anim.loop_animate(self.images.surfaces['big_monitor_fs_surface'],all_assets,top_layer,self.images.pos['big_monitor_fs_left_corner'],self.big_monitor_fs_update_rect,self.images.screen)
 
-
-
 class Game:
     def __init__(self):
         pygame.init()
@@ -1123,11 +1271,9 @@ class Game:
         self.env = self.env_init()
         self.clock = pygame.time.Clock()
         self.board = Leaderboard(self.images,self.graphics.small_content_update_rect)
-        self.joystick_sound = [self.sound.files['joystick_1'],self.sound.files['joystick_2']]
-        self.main_menu_assets = [(self.images.images['nle_logo_menu'],self.images.pos['menu_text'])]
-        self.game_over_assets = [(self.images.images['play_again'],(0,0))]
         pygame.display.set_caption("NetHack Prolog Agent")
         pygame.display.set_icon(self.images.images['icon'])
+        self.score = 0
         self.main_menu()
 
     def load_data(self):
@@ -1152,8 +1298,8 @@ class Game:
 
     def display_inv(self):
         
-        inv_strs = self.env.unwrapped.last_observation[7]  
-        inv_letters = self.env.unwrapped.last_observation[8]  
+        inv_strs = self.env.unwrapped.last_observation[7]       #type: ignore
+        inv_letters = self.env.unwrapped.last_observation[8]    #type: ignore
 
         for letter, line in zip(inv_letters, inv_strs):
             if np.all(line == 0):
@@ -1219,12 +1365,14 @@ class Game:
                 self.graphics.update_graphics(self.env,1)
             else:
                 step_res = self.env.step(self.controller.keys[key_name].nle_move) #type: ignore
-
-            if self.env.unwrapped.last_observation[14][0]: # type: ignore
+            
+            if step_res[0]['blstats'][9] > self.score:  #type: ignore
+                self.score =  int(step_res[0]['blstats'][9])  #type: ignore
+            
+            if step_res[2]: #type: ignore
                 return False
 
         if self.controller.controller_set['joystick'].is_pressed:
-            #self.joystick_sound[random.randint(0,1)].play()
             self.sound.key_sounds[key_name].play()
             self.controller.controller_set['joystick'].release_key(self.clock)
 
@@ -1233,15 +1381,45 @@ class Game:
             self.sound.files['button'].play()
             self.controller.controller_set['buttons'].release_key(self.clock)
         
+        
         return step_res
+
+    # def get_final_stats(self):
+    #     score = self.env.unwrapped.last_observation[4][9] #type: ignore
+    #     lvl = self.env.unwrapped.last_observation[15][0]  #type: ignore
+        
+    #     return score,lvl
+
+    def choose_action(self,action):
+        if not action:
+            #turn of sound
+            self.sound.files['shutdown'].play()
+            self.quit_game()
+        else:
+            self.start_game(action)
 
     def start_game(self,action):
         self.env = self.env_init()
-        
+        self.score = 0
         if action==1:
             self.play_game()
         else:
             self.init_prolog()
+        
+        self.sound.files['game'].fadeout(1000)
+        
+        lvl = int(self.env.unwrapped.last_observation[15][0]) #type: ignore
+        #score,lvl = self.get_final_stats()
+        
+        if self.board.is_highscore(self.score):
+            if action == 1:
+                self.highscore(self.score,lvl)
+            else:
+                self.board.insert_highscore(self.score,lvl,'PLG')
+
+        #debug to see if game really ended
+        pygame.time.wait(1000)
+        self.game_over()
 
     def quit_game(self):
         pygame.quit()
@@ -1284,14 +1462,14 @@ class Game:
                                     break
                             else:
                                 self.sound.files['main_menu'].fadeout(7000)
-                                animation.set_fade_out(animation.fade_surface)
+                                animation.set_fade_out(animation.fade_surface,True)
                                 action_trigger = True 
                                 action = 0
                                 break
                         else:
                             self.sound.files['coin'].play().set_volume(1.0)
                             self.sound.files['main_menu'].fadeout(7000)
-                            animation.set_fade_out(animation.fade_surface)
+                            animation.set_fade_out(animation.fade_surface,True)
                             action_trigger = True 
                             if not menu.who_is_pressed:
                                 action = 1
@@ -1350,31 +1528,155 @@ class Game:
             if action_ticks >0:
                 action_ticks-=1
             else:
-                if not action:
-                    #turn of sound
-                    running = False
-                else:
-                    self.start_game(action)
+                running = False
         
         return action,action_trigger,action_ticks,running,selection,menu
+
+    def get_end_reason(self):
+        text = "You "
+        end_reason:nle._pynethack.nethack.game_end_types = self.env.unwrapped.nethack.how_done() #type:ignore
+        match (end_reason.value):
+            case 0:
+                text += 'died.'
+            case 1: 
+                text += 'choked.'
+            case 2: 
+                text += 'were poisened.'
+            case 3: 
+                text += 'starved.'
+            case 4: 
+                text += 'drowned.'
+            case 5: 
+                text += 'burned.'
+            case 6: 
+                text += 'dissolved.'
+            case 7: 
+                text += 'were crushed.'
+            case 8: 
+                text += 'were stonned.'
+            case 9: 
+                text += 'were turned into slime.'
+            case 10:
+                text += 'were genocided.'
+            case 11: 
+                text += 'panicked.'
+            case 12: 
+                text += 'were tricked.'
+            case 13: 
+                text += 'quit.'
+            case 14: 
+                text += 'escaped.'
+            case 15:
+                text += 'Ascended.'
+        rect = self.images.surfaces['big_monitor_fs_surface'].get_rect()
+        x,y = rect.center
+        txt_surface = self.graphics.render_text(text,20,"#F8F8FF")
+        w = txt_surface.get_width()
+        h = txt_surface.get_height()
+        posx = x-w 
+        posy = y-h
+
+        return txt_surface,(posx+90,posy+20)   
+    
+    def highscore(self,score,lvl):
+        self.sound.files['highscore'].play()
+        index = self.board.insert_highscore(score,lvl,'')
+
+        #render as cenas do ecrã
+        name = ''
+        name_pos = (518,310)
+        rank = self.graphics.render_text(self.board.board[index][0],30,"#F8F8FF")
+        lvl_txt =  self.graphics.render_text(str(lvl),30,"#F8F8FF")
+        score_txt = self.graphics.render_text(str(score),30,"#F8F8FF")
+        name_txt = self.graphics.render_text('',30,"#F8F8FF")
+        text_list = [(rank,(293,310)),(lvl_txt,(744,310)),(score_txt,(893,310)),(name_txt,name_pos)]
+        cursor = self.graphics.render_text("_",30,"#F8F8FF")
+        cursor_pos = (name_pos[0] + name_txt.get_width(),name_pos[1]+10)
+        cursor_list =  [(cursor,cursor_pos)]
+        assets = self.board.assets + text_list
+        top_layer = (self.images.surfaces['big_overlay_cut_fs'],(0,0))
+        running = True
+        self.board.bg_anim.set_fps(60)
+        inserted = True
+
+        while running:
+            self.clock.tick(60)
+            for event in pygame.event.get():
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_ESCAPE:
+                            running = False 
+                            break
+                    if event.key == pygame.K_RETURN:
+                        if name == 'PLG':
+                            #tell player to choose another name
+                            self.sound.files['wrong'].play()
+                        else:
+                            self.sound.files['sellect'].play()
+                            running = False
+                    elif event.key == pygame.K_BACKSPACE:
+                        name = name[:-1]
+                    else:
+                        if len(name) == 3:
+                            self.sound.files['wrong'].play()
+                            if inserted:
+                                cursor_list = []
+                                inserted = False
+                        else:
+                            name += event.unicode.upper()
+            
+            assets.pop()
+            name_txt = self.graphics.render_text(name,30,"#F8F8FF")
+            assets.append((name_txt,name_pos))
+            cursor_pos = (name_pos[0] + name_txt.get_width(),name_pos[1]+10)
+
+            if len(name)<3:
+                cursor_list = [(cursor,cursor_pos)]
+                inserted = True
+            else:
+                if inserted:
+                    cursor_list = []
+                    inserted = False
+
+            #no idea why this isn't working - can't make it blink/toggle
+            # if len(name) < 3:
+            #     if inserted:
+            #         cursor_list = []
+            #         inserted = False
+            #     else: 
+            #         cursor_list = [(cursor,cursor_pos)]
+            #         inserted = True
+            # else:
+            #     if inserted:
+            #         cursor_list = []
+            #         inserted = False
+
+            self.board.bg_anim.loop_animate(self.images.surfaces['big_monitor_fs_surface'],cursor_list + assets,top_layer,self.images.pos['big_monitor_fs_left_corner'],self.graphics.big_monitor_fs_update_rect,self.images.screen)
+            self.board.small_screen_iddle()
+            self.controller.controller_set['special'].loop_animation()
+        
+        self.board.insert_name(name,index)
+        self.board.update_json()
 
     def game_over(self):        
         self.controller.controller_set['special'].set_iddle('space')
         self.sound.files['game_over'].play(fade_ms=1000).set_volume(0.5)
         self.graphics.game_over_screen()
         #get reason for game_over
-        end_reason:nle= self.env.unwrapped.nethack.how_done() #type: ignore
-        txt = 'You ' + str(end_reason)
-        txt_surface = self.graphics.render_text(txt,20,"#F0EAD6")
+        #end_reason:nle= self.env.unwrapped.nethack.how_done() #type: ignore
+        # "play_again_pos": [437,259],
+        end_reason = self.get_end_reason()
+        #txt_surface = self.graphics.render_text(txt,20,"#F0EAD6")
         
         #assets = [(self.images.images['play_again'],(0,0)),(txt_surface,(0,100))]
         animation = self.images.animations['game_over_bg']
+        animation.set_fade_out(animation.fade_surface,False)
+        animation.set_fade_in(animation.fade_surface,True)
         top_layer = (self.images.surfaces['big_overlay_cut_fs'],(0,0))
         running = True 
         menu = self.controller.controller_set['end_menu']
 
-        menu.assets.append((txt_surface,(300,200)))
-        action_trigger = False 
+        menu.assets.append(end_reason)
+        action_trigger = False
         action_ticks = 380
         action = 0
         selection = False
@@ -1383,8 +1685,8 @@ class Game:
             self.clock.tick(60)
             action, action_trigger, action_ticks, running, selection,menu = self.menu_screen_behaviour(animation,menu,top_layer,action,action_trigger,action_ticks,running,selection)
 
-        self.quit_game()
-
+        self.choose_action(action)
+    
     def play_game(self):
         self.sound.files['game'].play(-1,fade_ms=3000)
         running = True
@@ -1415,33 +1717,40 @@ class Game:
                         case pygame.K_ESCAPE:
                             running = False 
                             break
+                            #pass
                         case pygame.K_BACKSLASH:
                             pygame.display.toggle_fullscreen()
-                            break
+                            
                         case pygame.K_1:
                             self.graphics.screen_toggle()
-                            break
+                            
                         case pygame.K_i:
                             self.display_inv()
-                            break 
 
                     if key_name in self.controller.keys:
+                        #print("score before: ")
                         if self.controller.keys[key_name].has_graphics:
                         
                             #fazer um getter para isto, já agora, é por isto que estava a andar 2 vezes pro lado
                             controller_type: Joystick | Keypad | MenuVertical = self.controller.get_controller_type(key_name)            #controller.joystick or controller.keypad
                             
-                            controller_type.press_key(self.env,key_name,self.clock,0)
+                            obs:tuple = controller_type.press_key(self.env,key_name,self.clock,0)
                         else:
-                            self.env.step(self.controller.keys[key_name].nle_move)  #type: ignore
-                        
-                        self.graphics.update_graphics(self.env,0)
+                            obs:tuple = self.env.step(self.controller.keys[key_name].nle_move)  #type: ignore
 
-                        if self.env.unwrapped.last_observation[14][0] == running: # type: ignore
-                            running = False 
-                            pygame.mixer.music.fadeout(1000)
-                            self.sound.files['game_over'].play()
+                        self.graphics.update_graphics(self.env,0)
+                        if obs[0]['blstats'][9] > self.score:           #type_ignore
+                            self.score =  int(obs[0]['blstats'][9])      #type_ignore
+
+                        if obs[2] == running:   #type_ignore
+                            running = False
                             break
+                        # if self.env.unwrapped.last_observation[14][0] == running: # type: ignore
+                        #     running = False 
+                        #     #pygame.mixer.music.fadeout(1000)
+                        #     #self.sound.files['game_over'].play()
+                        #     break
+
             #OUTSIDE OF EVENT LOOP -> handle kept states and updates
             if self.controller.controller_set['joystick'].is_pressed:
                 
@@ -1454,9 +1763,9 @@ class Game:
                 else:
                     self.controller.controller_set['joystick'].release_key(self.clock)
                 
-                if self.env.unwrapped.last_observation[14][0] == running: # type: ignore
-                    running = False
-                    break
+                # if self.env.unwrapped.last_observation[14][0] == running: # type: ignore
+                #     running = False
+                #     break
 
             if self.controller.controller_set['buttons'].is_pressed:
                 pressed = pygame.key.get_pressed()
@@ -1464,11 +1773,6 @@ class Game:
                     pygame.time.wait(100)
 
                     self.controller.controller_set['buttons'].release_key(self.clock)
-
-        #pygame.mixer.music.fadeout(1000)
-        #debug to see if game really ended
-        pygame.time.wait(1000)
-        self.game_over()
 
     def main_menu(self):
         
@@ -1489,22 +1793,23 @@ class Game:
             self.clock.tick(60)
             action, action_trigger,action_ticks,running,selection,menu = self.menu_screen_behaviour(bg_anim,menu,top_layer,action,action_trigger,action_ticks,running,selection)
 
-        pygame.quit()
+        self.choose_action(action)
 
-# mode de jogo humano ou agent      - parcialmente feito. texto nao aparece
 # indicador das keys para os botões
 # overlay togle para ver as keys/acções
 # algo para guardar os melhores scores quer dos players quer do agent
 # hp bar
-# som de desligar
 
-# ver reinforcement learning 
+# ver reinforcement learning - dig tá a ver
 # arranjar o prolog todo lol
 #   - é preciso ver que a fome tá num sitio diferente daquele que inicialmente esperado. usar o mesmo que ta a ser usado no interface
 #   - as diagonais estão só a ser realizadas dentro de corredores, de tile de chão de corredor para tile de chão de corredor
 #   - não está a empurrar boulders, boulders não estão na valid list.
-#  added reason for game_over to game_over screen - it's returning: game_end_types.DIED
+# added reason for game_over to game_over screen - it's returning: game_end_types.DIED
 # portas: 1 abre, 2 entra na porta
-# door resists: não abre, mas pode não ser preciso kickar ? só insistir até abrir?
+# door resists: é ir contra a porta até abri.
+# só door locked é que precisa de kick
+
+#falta gravar os highscores antes de terminar o jogo
 if __name__ == '__main__':
     Game()

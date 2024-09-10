@@ -86,8 +86,8 @@ def step(env,num,game:interface.Game):
     
     #game.graphics.update_graphics(env,0)
 
+    #memory leak susceptible. calling game over before terminating prolog will only terminate prolog after another game is either started or the game finishes
     if step_res == False:
         game.game_over()
 
     return step_res
-

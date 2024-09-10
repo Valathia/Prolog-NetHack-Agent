@@ -79,13 +79,14 @@ class Spritesheet:
 #
 class Animation(Spritesheet):
     
-    def __init__(self,filename,side,is_fullstrip,is_mirrored):
+    def __init__(self,filename,side,is_fullstrip,is_mirrored,is_symmetric):
         super().__init__(filename,side)
         self.frames = self.cols #renaming for readability
         if self.frames <=1:
             raise ValueError(f'Unable to create Animation list. Less than 2 frames found.\n your frame size is: {self.height}x{self.height} and your spritesheet is {self.height}x{self.width}')
         self.is_fullstrip:bool = is_fullstrip           
         self.is_mirrored:bool = is_mirrored              #when creating animations from mirrored half strips -- won't matter for a fullstrip
+        self.is_symmetric = is_symmetric
         self.fade_surface = pygame.Surface((self.side,self.height)) #placeholder
         self.clean_surface = pygame.Surface((self.side,self.height)) #placeholder
         self.anim_press, self.anim_release, self.default_frame = self.set_strips()
@@ -126,6 +127,9 @@ class Animation(Spritesheet):
         "release_off" :-1,                  #offset
         "default_at": 0                     #default 1º
         }
+        
+        if not self.is_symmetric:
+            return self.one_strip(params)
 
         if self.is_fullstrip:
             params["frames"] = self.frames // 2 #se for full só usr metade
@@ -137,6 +141,20 @@ class Animation(Spritesheet):
             params["default_at"] = self.frames-1    #last image
         
         return  self.set_split_strip(params)
+
+
+    def one_strip(self,params:dict):
+        anim_press = []
+        anim_release = []
+        half = params['frames'] // 2
+        for i in range(1,half):
+            anim_press.append( self.image_at(i,0))
+        
+        for i in range(half, params['frames'] ):
+            anim_release.append( self.image_at(i,0))
+        
+        default = self.image_at(params["default_at"],0)
+        return anim_press, anim_release, default
 
     #divides the animation in half (ex: pressing a button, releasing a button)
     def set_split_strip(self,params:dict):
@@ -155,13 +173,13 @@ class Animation(Spritesheet):
         # print('\n')
         return anim_press, anim_release, default
     
-    def set_fade_in(self,surface:pygame.Surface):
-        self.fade_in = True 
+    def set_fade_in(self,surface:pygame.Surface,val:bool):
+        self.fade_in = val 
         self.alpha = 255
         self.fade_surface = surface 
     
-    def set_fade_out(self,surface:pygame.Surface):
-        self.fade_out = True
+    def set_fade_out(self,surface:pygame.Surface,val:bool):
+        self.fade_out = val
         self.alpha = 0
         self.fade_surface = surface
 
@@ -170,7 +188,7 @@ class Animation(Spritesheet):
 
     def set_fps(self,fps_val:int):
         self.fps = fps_val
-        self.frame_rate = self.fps // self.frames
+        self.frame_rate = (self.fps // self.frames) + 1
     
     def fade(self,surface):
         fade_surface = self.fade_surface.copy()
@@ -204,7 +222,6 @@ class Animation(Spritesheet):
             #self.images.big_monitor_fs_surface
             surface = bg_surface.copy()
             #monitor_rect = pygame.Rect(update_pos,surface.get_size())
-
             surface.blit( self.anim_full[self.current_frame//self.frame_rate],(0,0))
             #assets_size = len(additional_assets)-1
             #top_layer = additional_assets[assets_size]
