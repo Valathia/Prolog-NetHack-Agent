@@ -96,6 +96,7 @@ class Sound:
             "howling": self.files['howling'],
             'reveille': self.files['bugle'],
             "You hear a chugging sound.": self.files['heal'],
+            "slow drip": self.files['drip'],
             #music trap/Squeak Board
             "C note" : self.files["do"],
             "D flat" : self.files["do#"],
@@ -1068,9 +1069,10 @@ class Leaderboard:
 
 class Graphics:
 
-    def __init__(self,stat_keys,stats_to_print,graphic_components,images,sounds):
+    def __init__(self,stat_keys,stats_to_print,stats_to_print_2,graphic_components,images,sounds):
         self.stat_keys:list[str]= stat_keys
         self.stats_to_print:list[str] = stats_to_print
+        self.stats_to_print_2:list[str] = stats_to_print_2
         self.images:ImageBin = images
         self.graphic_components:dict = graphic_components
         self.dungeon:Dungeon = Dungeon()
@@ -1197,27 +1199,70 @@ class Graphics:
         stat_values_s = map(str,stat_values)
         stat_dict = dict(zip(self.stat_keys, stat_values_s))
         
-        if int(stat_dict['dungeon_num']) != 0:
-            print("dungeon_num: ",stat_dict['dungeon_num'] )
-            for i in matrix:
-                print(i)
+        if int(stat_dict['D#']) != 0:
+            print("dungeon_num: ",stat_dict['D#'] )
+            # for i in matrix:
+            #     print(i)
 
         # print("---- STAT DICT ----")
         # for key in stat_dict:
         #     print(f'{key} - {stat_dict[key]}')
         
+        hp_text = f'HP {stat_dict['hp']} ({stat_dict['maxhp']})'
+        hp_bar_total_width = 240
+        max_hp = int(stat_dict['maxhp'])
+        hp = int(stat_dict['hp'])
 
-        stat_msg = 'HP:' + stat_dict['hp'] + '(' + stat_dict['maxhp'] + ') PW:' + stat_dict['energy'] + '(' + stat_dict['maxenergy'] + ') Lvl:' + stat_dict['explvl'] + ' Exp:' + stat_dict['exp'] + ' $:' + stat_dict['gold'] + ' Hunger: ' + str(hunger) + ' Dungeon #:' + stat_dict['dungeon_num']
-        stat_msg_2 = 'Neutral'
+        if hp !=0 :
+            bar_width = hp*hp_bar_total_width//max_hp
+            percentage = bar_width/hp_bar_total_width * 100
+        else:
+            bar_width = 0
+            percentage = 0
+        
+        bar_colour = "#87d6a5"
+        
+        #stat_msg = 'HP:' + stat_dict['hp'] + '(' + stat_dict['maxhp'] + ')' + Lvl:' + stat_dict['explvl'] + ' Exp:' + stat_dict['exp'] + ' $:' + stat_dict['gold'] + ' Hunger: ' + str(hunger) + ' Dungeon #:' + stat_dict['dungeon_num']
+        #240x15 87d6a5
+        
+        if percentage >= 85:
+            bar_colour = "#87d696"
+        elif percentage >= 70:
+            bar_colour = "#88d687"
+        elif percentage >= 60:
+            bar_colour ="#88d33c"
+        elif percentage >= 50:
+            bar_colour ="#ecf52c"
+        elif percentage >= 40:
+            bar_colour ="#f5e02c"
+        elif percentage >= 30:
+            bar_colour ="#f5ca2c"
+        elif percentage >= 20:
+            bar_colour ="#f5a02c"
+        elif percentage >= 10:
+            bar_colour ="#f56f2c"
+        else:
+            bar_colour ="#f54d2c"
 
+        stat_msg_2 = 'Neutral '
+        stat_msg = ' PW:' + stat_dict['energy'] + '(' + stat_dict['maxenergy'] + ') '
+        
         for key in self.stats_to_print:
-            stat_msg_2 += ' ' + key + ':' + stat_dict[key]
+            stat_msg += key + ':' + stat_dict[key] + ' '
 
+        stat_msg += ' Hunger: ' + str(hunger)
+
+        for key in self.stats_to_print_2:
+            stat_msg_2 += key + ':' + stat_dict[key] + ' '
+
+        bar = pygame.Surface((bar_width,15))
+        bar.fill(bar_colour)
+        bar_limit = terminal_font_s.render('|',True, bar_colour)
+        hp_text_render = terminal_font_s.render(hp_text,True, "#F0EAD6")
         render_stat_msg = terminal_font_s.render(stat_msg,True, "#F0EAD6")
         render_stat_msg2 = terminal_font_s.render(stat_msg_2,True, "#F0EAD6")
 
-        dungeon_surface = self.dungeon.draw_dungeon(matrix,int(stat_dict['dungeon_num']))
-
+        dungeon_surface = self.dungeon.draw_dungeon(matrix,int(stat_dict['D#']))
 
         #435 H - 336 dungeon + 15 de cada stat + 5 entre as stats + 20 da mensagem + 20 da mensagem ate à dungeon + 5 da beira do ecra em cima + 5 da beira do ecra em baixo
         #+120 +190 (190-98)
@@ -1227,8 +1272,16 @@ class Graphics:
         if msg[0] != 0:
             game_msg = self.update_message(msg,mode)
             bg_clean.blit(game_msg,(dungeon_pos[0],dungeon_pos[1]-40)) #starts same place as dungeon, Y -40
+        
 
-        bg_clean.blit(render_stat_msg, (dungeon_pos[0], dungeon_pos[1]+356)) #starts same place as dungeon, Y +396
+        #HP BAR shananigans
+        mid_point = hp_bar_total_width//2 -65
+        bg_clean.blit(bar_limit,(dungeon_pos[0], dungeon_pos[1]+356))
+        bg_clean.blit(bar_limit,(dungeon_pos[0]+hp_bar_total_width, dungeon_pos[1]+356))
+        bg_clean.blit(bar,(dungeon_pos[0], dungeon_pos[1]+356))
+        bg_clean.blit(hp_text_render,(dungeon_pos[0]+mid_point, dungeon_pos[1]+356))
+        
+        bg_clean.blit(render_stat_msg, (dungeon_pos[0]+hp_bar_total_width, dungeon_pos[1]+356)) #starts same place as dungeon, Y +396
         bg_clean.blit(render_stat_msg2, (dungeon_pos[0], dungeon_pos[1]+376)) #starts same place as dungeon, Y +416
 
         #apply overlay
@@ -1331,11 +1384,11 @@ class Game:
         sound = Sound(data["sound"])
         images = ImageBin(data["positioning"],data["images"],data["surfaces"],data["animations"])
         controller = ControllerSet(data["action_map"],data["controller_sets"],images)
-        graphics = self.init_graphics(controller,images,data["stat_keys"], data["stats_to_print"],sound)
+        graphics = self.init_graphics(controller,images,data["stat_keys"],data["stats_to_print"], data["stats_to_print_2"],sound)
         
         return images, controller, graphics, sound
 
-    def init_graphics(self,controller,images,stat_keys,stats_to_print,sound):
+    def init_graphics(self,controller,images,stat_keys,stats_to_print,stats_to_print_2,sound):
 
 
         graphic_assets = { 'joystick_default':controller.controller_set['joystick'].default_state,
@@ -1343,7 +1396,7 @@ class Game:
                                             'button_default': controller.controller_set['buttons'].default_state,
                                             'button_pos'  : controller.controller_set['buttons'].button_pos}
         
-        return Graphics(stat_keys,stats_to_print,graphic_assets,images,sound)
+        return Graphics(stat_keys,stats_to_print,stats_to_print_2,graphic_assets,images,sound)
 
     def display_inv(self):
         
@@ -1401,7 +1454,11 @@ class Game:
         nethack.Command.RUB     ,
         nethack.Command.TURN    ,
         nethack.Command.UNTRAP  ,
-        nethack.Command.OFFER   
+        nethack.Command.OFFER   ,
+        nethack.Command.LOOK,
+        nethack.Command.CONDUCT,
+        nethack.Command.HISTORY,
+        nethack.Command.OVERVIEW
         )
         #"NetHackScore-v0"
         #NetHackGold
@@ -1819,10 +1876,10 @@ class Game:
                             obs:tuple = self.env.step(self.controller.keys[key_name].nle_move)  #type: ignore
 
                         self.graphics.update_graphics(self.env,0)
-                        if obs[0]['blstats'][9] > self.score:           #type_ignore
-                            self.score =  int(obs[0]['blstats'][9])      #type_ignore
-
-                        if obs[2] == running:   #type_ignore
+                        if obs[0]['blstats'][9] > self.score:           
+                            self.score =  int(obs[0]['blstats'][9])      
+                        
+                        if obs[2] == running:   
                             running = False
                             break
                         # if self.env.unwrapped.last_observation[14][0] == running: # type: ignore
@@ -1877,7 +1934,6 @@ class Game:
 
 # indicador das keys para os botões
 # overlay togle para ver as keys/acções
-# algo para guardar os melhores scores quer dos players quer do agent
 # hp bar
 
 # ver reinforcement learning - dig tá a ver
@@ -1890,7 +1946,5 @@ class Game:
 # door resists: é ir contra a porta até abri.
 # só door locked é que precisa de kick
 
-#falta gravar os highscores antes de terminar o jogo
-#quando as mensagens são muito grandes, ta a partir ao contrário
 if __name__ == '__main__':
     Game()

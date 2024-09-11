@@ -13,31 +13,37 @@
         "hp",
         "maxhp",
         "Dlvl",
-        "gold",
+        "$",
         "energy",
         "maxenergy",
         "AC",
         "monsterlvl",
-        "explvl",
-        "exp",
+        "Lvl",
+        "Exp",
         "T",
         "hunger",
         "carrying",
-        "dungeon_num",
+        "D#",
         "lvl_num",
         "con_bit_mask",
         "alig"
     ],
     "stats_to_print": [
+        "Lvl",
+        "Exp",
+        "Dlvl",
+        "$",
+        "Score"
+    ],
+    "stats_to_print_2": [
         "Str",
         "Dex",
         "Con",
         "Int",
         "Wis",
         "Char",
-        "Score",
-        "Dlvl",
         "AC",
+        "D#",
         "T"
     ],
     "sound": {
@@ -251,6 +257,9 @@
         },
         "drain": {
             "file": "assets/Sound/drain.mp3" 
+        },
+        "drip": {
+            "file": "assets/Sound/water_drip.mp3" 
         }
     },
     "action_map": {
@@ -684,6 +693,30 @@
         },
         "ctrl+o": {
             "nle_move": 50,
+            "has_graphics": false,
+            "graphic_component": 0,
+            "controller": "keys"
+        },
+        ":": {
+            "nle_move": 51,
+            "has_graphics": false,
+            "graphic_component": 0,
+            "controller": "keys"
+        },
+        "ctrl+C": {
+            "nle_move": 52,
+            "has_graphics": false,
+            "graphic_component": 0,
+            "controller": "keys"
+        },
+        "V": {
+            "nle_move": 53,
+            "has_graphics": false,
+            "graphic_component": 0,
+            "controller": "keys"
+        },
+        "ctrl+O": {
+            "nle_move": 54,
             "has_graphics": false,
             "graphic_component": 0,
             "controller": "keys"
