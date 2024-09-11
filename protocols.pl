@@ -299,10 +299,10 @@ tunneling_protocol(ENV,DATA,GAME):-
  * @param DATA The resulting game data after handling the dead-end.
  */
 tunneling_protocol(ENV,DATA,GAME):-
-    format('Tunneling failsafe, retract all - End ~n'),
-    py_call(prolog_gui:output_text('Tunneling failsafe, retract all - End','',GAME)),
-    move('_SEARCH_', ENV,GAME, DATA),
-    retractall(wayback(_,_)).
+    format('Tunneling failsafe, dont retract all - End ~n'),
+    py_call(prolog_gui:output_text('Tunneling failsafe, dont retract all - End','',GAME)),
+    move('_SEARCH_', ENV,GAME, DATA).
+    %retractall(wayback(_,_)).
 
 
 /**
@@ -320,7 +320,8 @@ go_down_stairs(ENV,DATA,GAME):-
     retractall(locked(_,_)),   
     retractall(floor_once(_,_)),
     retractall(floor_twice(_,_)),
-    retractall(floor_locked(_,_)).
+    retractall(floor_locked(_,_)),
+    retractall(edge(_,_,_)).
     %%renderMap(ENV).
 
 /**
@@ -332,7 +333,7 @@ go_down_stairs(ENV,DATA,GAME):-
 eat_protocol(ENV,DATA,GAME):-
     format('Eat Protocol . End ~n'),
     py_call(prolog_gui:output_text('Eat Protocol . End - has a retract','',GAME)),
-    retractall(wayback(_,_)),
+    %retractall(wayback(_,_)),
     move('_EAT_',ENV,GAME,_),
     move('_NW_', ENV, GAME,DATA).
     %renderMap(ENV).
@@ -399,7 +400,7 @@ protocol(ENV,_,_,'food',DATA,GAME):-
 protocol(ENV,_,_,'monster',DATA,GAME):-
     format('Protocol Call: Monster ~n'),
     py_call(prolog_gui:output_text('Protocol Call: Monster','',GAME)),
-    retractall(wayback(_,_)),
+    %retractall(wayback(_,_)),
     move('_SEARCH_', ENV,GAME, DATA).
 
 protocol(ENV,_,_,'monster',DATA,GAME):-
@@ -435,7 +436,7 @@ protocol(ENV,(X,Y),ACTION,GOAL,DATA,GAME):-
     format('Protocol Call: Open Door/ Passage - Tunneling: ~w  ~n',[GOAL]),
     py_call(prolog_gui:output_text('Protocol Call: Open Door/ Passage - Tunneling','',GAME)),
     door_opened(GOAL),
-    retractall(wayback(_,_)),
+    %retractall(wayback(_,_)),
     move(ACTION,ENV,GAME,_),
     %renderMap(ENV),
     asserta(wayback(X,Y)),

@@ -64,10 +64,12 @@ class Sound:
         self.msg_sounds = {
             #doors
             "As you kick the door" : self.files['door_slam'],
+            "door crash open.": self.files['door_slam'],
             "WHAM" : self.files['door_resist'],
             "door resists": self.files['door_resist'],
             'kick at empty': self.files['miss'],
-            "The door opens.":self.files['door_open'],
+            "The door opens.":self.files['door_unlock'],
+            "unlock and open.":self.files['door_unlock'],
             #combat
             "hits!": self.files['take_bump'],
             "bites!":  self.files['take_bump'],
@@ -94,8 +96,57 @@ class Sound:
             "howling": self.files['howling'],
             'reveille': self.files['bugle'],
             "You hear a chugging sound.": self.files['heal'],
-            #music trap
-            "F note": self.files["fa"],
+            #music trap/Squeak Board
+            "C note" : self.files["do"],
+            "D flat" : self.files["do#"],
+            "D note" : self.files["re"],
+            "E flat" : self.files["re#"],
+            "E note" : self.files["mi"],
+            "F note" : self.files["fa"],
+            "F sharp" : self.files["fa#"],
+            "G note" : self.files["sol"],
+            "G sharp" : self.files["sol#"],
+            "A note" : self.files["la"],
+            "B flat" : self.files["la#"],
+            "B note" : self.files["si"],
+            #traps
+            #arrow
+            "shoots out at you!": self.files["arrow"],
+            "loud click!": self.files["joystick"],
+            #bear trap
+            "A bear trap": self.files["bear_trap"],
+            "the bear trap.": self.files["metal_release"],
+            #anti magic field
+            "magical energy drain away": self.files["drain"],
+            #fire
+            "tower of flame erupts" : self.files["fire"],
+            #hole
+            "gaping hole under you!": self.files["fall"],
+            "You fall down": self.files["fall"],
+            "fall into a pit": self.files["fall"],
+            "You land on a set of sharp iron spikes.": self.files["fall"],
+            #teleport
+            "You shudder for a moment.": self.files["teleport"],
+            #ladmine
+            "KAABLAMM!!!": self.files["explosion"],
+            "Kaablamm!": self.files["distant_explosion"],
+            "distant explosion.": self.files["distant_explosion"],
+            "KABOOM!!": self.files["explosion"],
+            #magic trap
+            "explodes!": self.files["explosion"],
+            "magical explosion!": self.files["explosion"],
+            "deafening roar!": self.files["roar"],
+            "flash of light": self.files["flash"],
+            #boulder
+            "Click!": self.files["joystick"],
+            "loud crash as a boulder": self.files['crashing_rock'],
+            "rumbling": self.files['rumble'],
+            #rust
+            "gush of water": self.files["water_gush"],
+            #sleep
+            "cloud of gas": self.files["gas"],
+            #trap door
+            #"trap door opens"
             #food
             "is delicious!": self.files['eat'],
             "yummy":self.files['eat'],
@@ -110,6 +161,7 @@ class Sound:
             'hidden': self.files['hidden'],
             "solid stone":self.files['bonk'],
             "a wall": self.files['bonk'],
+            "a secret door.": self.files['hidden'],
             #misc
             "Welcome to experience level": self.files['level_up'],
             #"healthy!": self.files['level_up'], #message displayed when monk levels up to level 3
@@ -120,7 +172,7 @@ class Sound:
             "You stop.  Your kitten": self.files['cat_way'],
             "You stop.  Your little": self.files['dog_way']
         }
-        self.limit_time = ['fountain','hear a door open','The door opens.','counting money',"You hear water falling on coins.","bubbling water"]
+        self.limit_time = ['fountain','hear a door open','The door opens.','counting money',"You hear water falling on coins.","bubbling water", "tower of flame erupts","flash of light"]
 
     def init_sound(self,sound_dict):
         new_dict:dict[str,pygame.mixer.Sound] = {}
@@ -151,7 +203,7 @@ class Sound:
                     self.msg_sounds[keys].play(maxtime=3000)
                 elif keys == 'footsteps':
                     self.msg_sounds[keys].play().fadeout(10000)
-                elif keys == 'reveille':
+                elif keys == 'reveille' or keys == 'rumbling':
                     self.msg_sounds[keys].play(maxtime=8000)
                 else:    
                     self.msg_sounds[keys].play()
@@ -247,15 +299,14 @@ class Buttons(Keys):
     def __init__(self, dict):
         super().__init__(dict)
         self.pos = (0,0)     #placeholder
-        #self.update_rect = pygame.Rect((0,0,1,1))           #placeholder
-        #self.bg_clean = pygame.Surface((0,0))               #placeholder
 
-class Special(Directional,Buttons):
-    def __init__(self, dict):
-        super().__init__(dict)
+
 
 #Keyset of animated keys of same type
 class Joypad:
+    """
+    Parent class for all controllers aka key sets
+    """
     def __init__(self,key_dict,w,h,images):
         self.key_dict:dict[str,Buttons]|dict[str,Directional] = key_dict
         self.is_pressed = False
@@ -267,12 +318,6 @@ class Joypad:
     def animation(self,anim_array:list[pygame.Surface],clock,base_pos:tuple[int,int],update_rect:pygame.Rect,bg_clean:pygame.Surface):
 
         size = len(anim_array)
-        #base_pos = self.key_dict[self.key_pressed].pos
-        #get the clean bg bit from the bg image
-        #update_rect = pygame.Rect(base_pos[0],base_pos[1],self.w_refresh,self.h_refresh)
-        #bg_clean = pygame.Surface([update_rect.width, update_rect.height], pygame.SRCALPHA)
-        #bg_clean.blit(self.images.images['bg'], (0, 0), update_rect)
-        #local_clock = pygame.time.Clock()
         aux = bg_clean.copy()
         for i in range(size):
             #clock must be synced - this is probably a bad idea actually
@@ -291,9 +336,11 @@ class Joypad:
     def release_key(self,clock):
         pass
 
-#The joypads still have hardcoded sprites and probably other things
 class Joystick(Joypad):
-
+    """
+    Joystick behaviours and assets. -> is a collection of Keys, specifically Directional(Keys)
+    Properties can be used for objects with similar behaviour. 
+    """
     def __init__(self,key_dict:dict[str,Directional],images:ImageBin,pos,w_joystick_anim,h_joystick_anim):
         super().__init__(key_dict,w_joystick_anim,h_joystick_anim,images)
         self.pos:tuple[int,int] = pos
@@ -310,7 +357,6 @@ class Joystick(Joypad):
         #self.anim_play = []
         self.anim_cur = []
         self.anim_done = True
-        #self.sound = pygame.mixer.Sound( "assets/Sound/joystick.mp3")
         self.iddle = False 
         self.iddle_key = ''
         
@@ -318,7 +364,8 @@ class Joystick(Joypad):
         key = list(self.key_dict.keys())[0]
         return self.key_dict[key].anim_ss.default_frame #type: ignore
     
-    #not sure if this will work in the long wrong and is uneeded anyway
+
+    #joystick functions for the menus to swap between options with the animation loops going on and without nle steps
     def press_key_loop(self,key_name):
         self.is_anim = True
         self.anim_cur = self.key_dict[key_name].anim_ss.anim_press   #type: ignore
@@ -336,6 +383,9 @@ class Joystick(Joypad):
         self.iddle = True 
         self.iddle_key = key_name
 
+    #the coin button functionalities are very similiar to the joystick.
+    #the button is created as a joystick and the loop and iddle animation are added for the button
+    #the iddle animation is for it to "blink", and the loop animation is to be able to press it from within the loop and have it return to idle
     def iddle_animation(self):
         frame: pygame.Surface = self.key_dict[self.iddle_key].anim_ss.toggle() #type: ignore
         self.images.screen.blit(self.bg_clean,self.pos)
@@ -361,21 +411,7 @@ class Joystick(Joypad):
             if not self.is_pressed or self.key_pressed != self.iddle_key:
                 self.iddle_animation()
 
-    def press_key_no_action(self,key,clock,bg_surface,screen):
-        #for agent: let env.step should be performed here -- no need for checking if pressed though
-        if self.is_pressed:
-            if key != self.key_pressed:
-                self.release_key(clock)
-                self.animation(self.key_dict[key].anim_ss.anim_press,clock,bg_surface,self.pos,screen) # type: ignore
-        else: 
-            self.animation(self.key_dict[key].anim_ss.anim_press,clock,bg_surface,self.pos,screen) # type: ignore
-        
-        #env.step(self.key_dict[key].nle_move)
-        self.is_pressed = True 
-        self.key_pressed = key
-
     def press_key(self,env,key,clock,mode)-> tuple:
-        #for agent: let env.step should be performed here -- no need for checking if pressed though
 
         if self.is_pressed:
             if key != self.key_pressed:
@@ -399,8 +435,11 @@ class Joystick(Joypad):
         else:
             return False
 
+#still has hardcoded values in class init
 class Keypad(Joypad):
-
+    """
+    Keypad behaviours and assets. -> is a collection of Keys, specifically Button(Keys)
+    """
     def __init__(self,key_dict:dict[str,Buttons],images:ImageBin,button_base,button_width,button_height):
         super().__init__(key_dict,button_width,button_height,images)
         self.default_state = self.images.animations['buttons_ss'].default_frame
@@ -413,7 +452,7 @@ class Keypad(Joypad):
         self.init_buttons(self.clean_matrix,'bg_clean')
 
     def press_key(self,env,key,clock,mode)->tuple:
-        #change this for only 1 input at a time for agent (no pressing)
+        #The game itself does not work well when allowing for multiple inputs in a row
         #if self.is_pressed:
         step_res:tuple = env.step(self.key_dict[key].nle_move)
 
@@ -425,13 +464,11 @@ class Keypad(Joypad):
                 self.is_pressed = True
                 self.key_pressed = key
         
-        #print("pressed key"+key)
         return step_res
 
     def release_key(self,clock):
         if self.is_pressed:
             self.animation(self.anim.anim_release,clock,self.key_dict[self.key_pressed].pos,self.key_dict[self.key_pressed].update_rect,self.key_dict[self.key_pressed].bg_clean) # type: ignore
-            #print("Released key " + self.key_pressed)
             self.is_pressed = False
             self.key_pressed = ''
             return True
@@ -450,7 +487,7 @@ class Keypad(Joypad):
     def init_buttons(self,matrix,attribute):
         calls = {"pos":self.set_pos,"update_rect":self.set_update_rect,"bg_clean":self.set_update_bg_clean}
 
-        BUTTON_KEYS = ['k','e','s','q','up','down']
+        BUTTON_KEYS = ['K','e','s','q','up','down']
         for row in matrix:
             for value in row:
                 key: str = BUTTON_KEYS.pop(0)
@@ -484,8 +521,12 @@ class Keypad(Joypad):
 
         return button_pos,button_rect, button_bg
 
+#vertical menu currently has hardcoded values
 class MenuVertical(Joypad):
-        
+        """
+        Big Monitor Vertical menus behaviours and assets. 
+        Is a collection of Keys, in this instance Directional(Keys). 
+        """
         def __init__(self,key_dict:dict[str,Directional],images:ImageBin,button_base,button_width,button_height,assets):
             super().__init__(key_dict,button_width,button_height,images)
             self.button_base = button_base
@@ -541,6 +582,10 @@ class MenuVertical(Joypad):
 class MenuHorizontal(Joypad):
         #button_width = 340
         #button_height = 99
+        """
+        Big Monitor horizontal menus behaviours and assets.
+        Is a collection of Keys, in this instance Directional(Keys). 
+        """
         def __init__(self,key_dict:dict[str,Directional],images:ImageBin,button_base,button_width,button_height,assets):
             super().__init__(key_dict,button_width,button_height,images)
             self.button_base = button_base
@@ -557,7 +602,6 @@ class MenuHorizontal(Joypad):
         
         def button_layout(self):
             button_pos:list[tuple[int,int]] = []
-            #hardcoded needs to be changed
             #+40 + 35
             for i in range(2):
                 button_pos.append((self.button_base[0]+i*self.button_spacing,self.button_base[1]))
@@ -589,10 +633,13 @@ class MenuHorizontal(Joypad):
             self.cur_key_pos = self.button_pos[self.who_is_pressed]
 
 class ControllerSet:
-
+    """
+    Instantiates and keep all of the needed physical controllers and their behaviours.
+    The controllers are the joystick, buttons, coin button and all menus. 
+    """
     def __init__(self,keys_dict,controller_dict,images:ImageBin):
         self.keys:dict[str,Keys] = {}
-        self.key_type_map = [Keys,Directional,Buttons,Special]
+        self.key_type_map = [Keys,Directional,Buttons]
         self.controller_type_map = [Joystick,Keypad,MenuVertical,MenuHorizontal]
         self.images = images
         self.controller_settings = self.init_vars(controller_dict)
@@ -639,6 +686,7 @@ class ControllerSet:
 
         for key in self.controller_settings:
             settings =  self.controller_settings[key]
+            #the menus have screen assets to be rendered during the bg animation loops
             if settings['type'] == MenuHorizontal or settings['type'] == MenuVertical:
                 controller[key] = settings['type'](settings['key_dict'],self.images,settings['pos'],settings["width"],settings["height"],settings["assets"])
             else:
@@ -816,7 +864,7 @@ class Dungeon:
                     game_surface.blit(img, (j*self.size,i*self.size))
         return game_surface
 
-#missing functions to add to leaderboard
+#isto tá off by one, não faças perguntas
 class Leaderboard:
     def __init__(self,images,small_content_update_rect) -> None:
         self.cur_frame = 0
@@ -880,11 +928,11 @@ class Leaderboard:
         elif score < mid_score:
             i = mid + 1
         
-        if j==0:
-            return 1
-
-        if i==15:
-            return 16
+        if i==j:
+            if self.board[i][score_index] < score:
+                return i 
+            else:
+                return i+1
         # if j==1:
         #     if  score == self.board[j][score_index]:
         #         return self.lvl_comp(lvl,j)
@@ -966,7 +1014,7 @@ class Leaderboard:
             for j in range(len(self.cur_list[i])):
                 render_text = self.small_font.render(str(self.cur_list[i][j]),True,"#F0EAD6")
                 bg_clean.blit(render_text,(self.offset[j]-render_text.get_width(),render_start))
-            
+
             render_start += 20
         
 
@@ -985,7 +1033,7 @@ class Leaderboard:
                     render_text = self.small_font.render(str(self.cur_list[i][j]),True,"#F0EAD6")
                     bg_clean.blit(render_text,(self.offset[j]-render_text.get_width(),render_start))
                 render_start += 20
-            
+
             bg_clean.blit(self.images.surfaces['small_overlay_cut'],(0,0))
             self.images.screen.blit(bg_clean,self.images.pos['small_content_left_corner'])
             pygame.display.update(self.small_content_update_rect)
@@ -1066,13 +1114,14 @@ class Graphics:
                     self.action_list.pop(0)
                     self.action_list.pop(0)
 
-
+            self.action_list.append(text)
             self.action_list.append(msg_2)
+        else:
+            if free_space == 0:
+                self.action_list.pop(0)
+            
+            self.action_list.append(text)
 
-        if free_space == 0:
-            self.action_list.pop(0)
-        
-        self.action_list.append(text)
         self.update_action_list()
 
     def update_message(self,msg,mode):
@@ -1321,7 +1370,38 @@ class Game:
         nethack.Command.ESC,        # escape from the current query/action
         nethack.Command.INVENTORY,  # kick something
         nethack.Command.QUAFF,      # quaff (drink) something
-        nethack.Command.PICKUP
+        nethack.Command.PICKUP,
+        nethack.Command.APPLY,       
+        nethack.Command.CAST,      
+        nethack.Command.CLOSE,     
+        nethack.Command.DROP ,       
+        nethack.Command.FIRE ,       
+        nethack.Command.MOVE ,       
+        nethack.Command.PAY  ,       
+        nethack.Command.PUTON   ,    
+        nethack.Command.READ    ,    
+        nethack.Command.REMOVE  ,    
+        nethack.Command.RUSH    ,    
+        nethack.Command.SWAP    ,    
+        nethack.Command.TAKEOFF ,    
+        nethack.Command.TAKEOFFALL  ,
+        nethack.Command.THROW       ,
+        nethack.Command.TWOWEAPON   ,
+        nethack.Command.VERSIONSHORT,
+        nethack.Command.WEAR        ,
+        nethack.Command.WIELD       ,
+        nethack.Command.ZAP         ,
+        nethack.Command.LOOT        ,
+        nethack.Command.ADJUST  ,
+        nethack.Command.ANNOTATE,
+        nethack.Command.CHAT    ,
+        nethack.Command.FORCE   ,
+        nethack.Command.PRAY    ,
+        nethack.Command.QUIT    ,
+        nethack.Command.RUB     ,
+        nethack.Command.TURN    ,
+        nethack.Command.UNTRAP  ,
+        nethack.Command.OFFER   
         )
         #"NetHackScore-v0"
         #NetHackGold
@@ -1335,7 +1415,7 @@ class Game:
         # "NetHackEat",
         # "NetHackScout",
         # "NetHackChallenge", actions=navigate_actions
-        env = gym.make("NetHackScore-v0", actions=navigate_actions)
+        env = gym.make("NetHackScore-v0", actions=navigate_actions,allow_all_yn_questions=True)
         #env.print_action_meanings()´
 
         env.reset()
@@ -1383,12 +1463,6 @@ class Game:
         
         
         return step_res
-
-    # def get_final_stats(self):
-    #     score = self.env.unwrapped.last_observation[4][9] #type: ignore
-    #     lvl = self.env.unwrapped.last_observation[15][0]  #type: ignore
-        
-    #     return score,lvl
 
     def choose_action(self,action):
         if not action:
@@ -1712,6 +1786,12 @@ class Game:
 
                 if event.type == pygame.KEYDOWN:
                     key_name = pygame.key.name(event.key)
+                    
+                    if event.mod & pygame.KMOD_SHIFT:
+                        key_name = key_name.upper()
+                    
+                    if event.mod & pygame.KMOD_CTRL:
+                        key_name = 'ctrl+' + key_name
 
                     match event.key:
                         case pygame.K_ESCAPE:
@@ -1811,5 +1891,6 @@ class Game:
 # só door locked é que precisa de kick
 
 #falta gravar os highscores antes de terminar o jogo
+#quando as mensagens são muito grandes, ta a partir ao contrário
 if __name__ == '__main__':
     Game()

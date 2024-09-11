@@ -621,7 +621,7 @@ get_objectives_2(MATRIX, GOAL_LIST):-
 get_path(MATRIX, START_R, START_C, [], ELEM_GOAL, SOL,GAME):-
     py_call(prolog_gui:output_text('Get path options exhausted - retract all FAILSAFE','',GAME)),          %no objectives introduce floor objectives
     retractall(wayback(_,_)),
-    retractall(edge(_,_,_)),
+    %retractall(edge(_,_,_)),
     get_next_move(MATRIX, START_R, START_C, ELEM_GOAL, SOL,GAME).
     %get_objectives_2(MATRIX, GOAL_LIST),
     %get_path(MATRIX, START_R, START_C, GOAL_LIST, ELEM_GOAL, SOL,GAME).
@@ -652,12 +652,12 @@ get_path(MATRIX, START_R, START_C, [(X,Y)|T], ELEM_GOAL, SOL, GAME):-
 
 get_next_move(MATRIX, START_R, START_C, ELEM_GOAL, SOL, GAME):-
     %get_objectives(MATRIX,GOAL_LIST),
+    retractall(edge(_,_,_)),
     build_graph((START_R,START_C),MATRIX),!,
     get_goals_2(MATRIX,GOAL_LIST),
     format('GOAL LIST: ~w ~n',[GOAL_LIST]),
     %py_call(prolog_gui:output_text('GOAL LIST: ',GOAL_LIST,GAME)),
-    get_path(MATRIX, START_R, START_C, GOAL_LIST, ELEM_GOAL, SOL, GAME),
-    retractall(edge(_,_,_)).
+    get_path(MATRIX, START_R, START_C, GOAL_LIST, ELEM_GOAL, SOL, GAME).
 
 get_next_move(_,_,_,_,[],_).
 

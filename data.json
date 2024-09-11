@@ -65,6 +65,9 @@
         "drop_coins" : {
             "file": "assets/Sound/drop_lots_of_coins.mp3"
         },
+        "joystick": {
+            "file": "assets/Sound/joystick.mp3"
+        },
         "joystick_1" :{
             "file": "assets/Sound/joystick_1.mp3"
         },
@@ -95,8 +98,41 @@
         "chime": {
             "file": "assets/Sound/cash_register.mp3"
         },
+        "do": {
+            "file": "assets/Sound/do.mp3"
+        },
+        "do#": {
+            "file": "assets/Sound/do#.wav"
+        },
+        "re": {
+            "file": "assets/Sound/re.mp3"
+        },
+        "re#": {
+            "file": "assets/Sound/re#.wav"
+        },
+        "mi": {
+            "file": "assets/Sound/mi.mp3"
+        },
         "fa": {
             "file": "assets/Sound/fa.mp3"
+        },
+        "fa#": {
+            "file": "assets/Sound/fa#.wav"
+        },
+        "sol": {
+            "file": "assets/Sound/sol.mp3"
+        },
+        "sol#": {
+            "file": "assets/Sound/sol#.wav"
+        },
+        "la": {
+            "file": "assets/Sound/la.mp3"
+        },
+        "la#": {
+            "file": "assets/Sound/la#.mp3"
+        },
+        "si": {
+            "file": "assets/Sound/si.mp3"
         },
         "door_resist": {
             "file": "assets/Sound/door_resists.mp3"
@@ -169,6 +205,52 @@
         },
         "heal": {
             "file": "assets/Sound/heal.mp3" 
+        },
+        "arrow": {
+            "file": "assets/Sound/arrow.mp3" 
+        },
+        "bear_trap": {
+            "file": "assets/Sound/bear_trap.mp3" 
+        },
+        "metal_release": {
+            "file": "assets/Sound/metal_release.mp3" 
+        },
+        "fire": {
+            "file": "assets/Sound/fire.mp3" 
+        },
+        "fall": {
+            "file": "assets/Sound/fall.mp3" 
+        },
+        "teleport": {
+            "file": "assets/Sound/teleport.mp3" 
+        },
+        "explosion": {
+            "file": "assets/Sound/explosion.mp3" 
+        }
+        ,
+        "distant_explosion": {
+            "file": "assets/Sound/distant_explosion.mp3" 
+        },
+        "roar": {
+            "file": "assets/Sound/roar.mp3" 
+        },
+        "flash": {
+            "file": "assets/Sound/flash.mp3" 
+        },
+        "rumble": {
+            "file": "assets/Sound/rumble.mp3" 
+        },
+        "water_gush": {
+            "file": "assets/Sound/water_gush.mp3" 
+        },
+        "gas": {
+            "file": "assets/Sound/gas.mp3" 
+        },
+        "door_unlock": {
+            "file": "assets/Sound/door_unlock.mp3" 
+        },
+        "drain": {
+            "file": "assets/Sound/drain.mp3" 
         }
     },
     "action_map": {
@@ -179,6 +261,17 @@
             "controller": "keys"
         },        
         "[1]": {
+            "nle_move": 7,
+            "has_graphics": true,
+            "graphic_component": 1,
+            "file": "assets/LEFT_DOWN_MOVE.png",
+            "is_full_strip": false, 
+            "is_mirrored" : true,
+            "frame_size": 200,
+            "controller": "joystick",
+            "is_symmetric": true
+        },
+        "b": {
             "nle_move": 7,
             "has_graphics": true,
             "graphic_component": 1,
@@ -200,7 +293,29 @@
             "controller": "joystick",
             "is_symmetric": true
         },
+        "j": { 
+            "nle_move": 3,
+            "has_graphics": true,
+            "graphic_component": 1,
+            "file":"assets/DOWN_MOVE.png",
+            "is_full_strip": false, 
+            "is_mirrored" : false,
+            "frame_size": 200,
+            "controller": "joystick",
+            "is_symmetric": true
+        },
         "[3]": {
+            "nle_move": 6,
+            "has_graphics": true,
+            "graphic_component": 1,
+            "file":"assets/DOWN_SIDE_MOVE.png",
+            "is_full_strip": false, 
+            "is_mirrored" : false,
+            "frame_size": 200,
+            "controller": "joystick",
+            "is_symmetric": true
+        },        
+        "n": {
             "nle_move": 6,
             "has_graphics": true,
             "graphic_component": 1,
@@ -222,7 +337,29 @@
             "controller": "joystick",
             "is_symmetric": true
         },
+        "h": {
+            "nle_move": 4,
+            "has_graphics": true,
+            "graphic_component": 1,
+            "file":"assets/LEFT_MOVE.png",
+            "is_full_strip": false, 
+            "is_mirrored" : true,
+            "frame_size": 200,
+            "controller": "joystick",
+            "is_symmetric": true
+        },
         "[6]": {
+            "nle_move": 2,
+            "has_graphics": true,
+            "graphic_component": 1,
+            "file":"assets/SIDE_MOVE.png",
+            "is_full_strip": false, 
+            "is_mirrored" : false,
+            "frame_size": 200,
+            "controller": "joystick",
+            "is_symmetric": true
+        },
+        "l": {
             "nle_move": 2,
             "has_graphics": true,
             "graphic_component": 1,
@@ -244,6 +381,17 @@
             "controller": "joystick",
             "is_symmetric": true
         },
+        "y": {
+            "nle_move": 8,
+            "has_graphics": true,
+            "graphic_component": 1,
+            "file":"assets/LEFT_UP_MOVE.png",
+            "is_full_strip": false, 
+            "is_mirrored" : true,
+            "frame_size": 200,
+            "controller": "joystick",
+            "is_symmetric": true
+        },
         "[8]": {
             "nle_move": 1,
             "has_graphics": true,
@@ -255,7 +403,29 @@
             "controller": "joystick",
             "is_symmetric": true
         },
+        "k": {
+            "nle_move": 1,
+            "has_graphics": true,
+            "graphic_component": 1,
+            "file":"assets/UP_MOVE.png",
+            "is_full_strip": false, 
+            "is_mirrored" : false,
+            "frame_size": 200,
+            "controller": "joystick",
+            "is_symmetric": true
+        },
         "[9]": {
+            "nle_move": 5,
+            "has_graphics": true,
+            "graphic_component": 1,
+            "file":"assets/UP_SIDE_MOVE.png",
+            "is_full_strip": false, 
+            "is_mirrored" : false,
+            "frame_size": 200,
+            "controller": "joystick",
+            "is_symmetric": true
+        },
+        "u": {
             "nle_move": 5,
             "has_graphics": true,
             "graphic_component": 1,
@@ -278,7 +448,7 @@
             "graphic_component": 2,
             "controller": "buttons"
         },
-        "w": {
+        ".": {
             "nle_move": 11,
             "has_graphics": false,
             "graphic_component": 0,
@@ -290,7 +460,7 @@
             "graphic_component": 0,
             "controller": "keys"
         },
-        "k": {
+        "K": {
             "nle_move": 13,
             "has_graphics": true,
             "graphic_component": 2,
@@ -328,6 +498,192 @@
         },
         "[+]": {
             "nle_move": 19,
+            "has_graphics": false,
+            "graphic_component": 0,
+            "controller": "keys"
+        },
+        "a": {
+            "nle_move": 20,
+            "has_graphics": false,
+            "graphic_component": 0,
+            "controller": "keys"
+        },        
+        "Z": {
+            "nle_move": 21,
+            "has_graphics": false,
+            "graphic_component": 0,
+            "controller": "keys"
+        },
+        "c": {
+            "nle_move": 22,
+            "has_graphics": false,
+            "graphic_component": 0,
+            "controller": "keys"
+        },
+        "d": {
+            "nle_move": 23,
+            "has_graphics": false,
+            "graphic_component": 0,
+            "controller": "keys"
+        },
+        "f": {
+            "nle_move": 24,
+            "has_graphics": false,
+            "graphic_component": 0,
+            "controller": "keys"
+        },
+        "m": {
+            "nle_move": 25,
+            "has_graphics": false,
+            "graphic_component": 0,
+            "controller": "keys"
+        },
+        "p": {
+            "nle_move": 26,
+            "has_graphics": false,
+            "graphic_component": 0,
+            "controller": "keys"
+        },
+        "P": {
+            "nle_move": 27,
+            "has_graphics": false,
+            "graphic_component": 0,
+            "controller": "keys"
+        },
+        "r": {
+            "nle_move": 28,
+            "has_graphics": false,
+            "graphic_component": 0,
+            "controller": "keys"
+        },
+        "R": {
+            "nle_move": 29,
+            "has_graphics": false,
+            "graphic_component": 0,
+            "controller": "keys"
+        },
+        "g": {
+            "nle_move": 30,
+            "has_graphics": false,
+            "graphic_component": 0,
+            "controller": "keys"
+        },
+        "x": {
+            "nle_move": 31,
+            "has_graphics": false,
+            "graphic_component": 0,
+            "controller": "keys"
+        },
+        "T": {
+            "nle_move": 32,
+            "has_graphics": false,
+            "graphic_component": 0,
+            "controller": "keys"
+        },
+        "A": {
+            "nle_move": 33,
+            "has_graphics": false,
+            "graphic_component": 0,
+            "controller": "keys"
+        },
+        "t": {
+            "nle_move": 34,
+            "has_graphics": false,
+            "graphic_component": 0,
+            "controller": "keys"
+        },
+        "X": {
+            "nle_move": 35,
+            "has_graphics": false,
+            "graphic_component": 0,
+            "controller": "keys"
+        },
+        "v": {
+            "nle_move": 36,
+            "has_graphics": false,
+            "graphic_component": 0,
+            "controller": "keys"
+        },
+        "W": {
+            "nle_move": 37,
+            "has_graphics": false,
+            "graphic_component": 0,
+            "controller": "keys"
+        },
+        "w": {
+            "nle_move": 38,
+            "has_graphics": false,
+            "graphic_component": 0,
+            "controller": "keys"
+        },
+        "z": {
+            "nle_move": 39,
+            "has_graphics": false,
+            "graphic_component": 0,
+            "controller": "keys"
+        },
+        "ctrl+l": {
+            "nle_move": 40,
+            "has_graphics": false,
+            "graphic_component": 0,
+            "controller": "keys"
+        },
+        "ctrl+a": {
+            "nle_move": 41,
+            "has_graphics": false,
+            "graphic_component": 0,
+            "controller": "keys"
+        },
+        "ctrl+A": {
+            "nle_move": 42,
+            "has_graphics": false,
+            "graphic_component": 0,
+            "controller": "keys"
+        },
+        "ctrl+c": {
+            "nle_move": 43,
+            "has_graphics": false,
+            "graphic_component": 0,
+            "controller": "keys"
+        },
+        "ctrl+f": {
+            "nle_move": 44,
+            "has_graphics": false,
+            "graphic_component": 0,
+            "controller": "keys"
+        },
+        "ctrl+p": {
+            "nle_move": 45,
+            "has_graphics": false,
+            "graphic_component": 0,
+            "controller": "keys"
+        },
+        "ctrl+q": {
+            "nle_move": 46,
+            "has_graphics": false,
+            "graphic_component": 0,
+            "controller": "keys"
+        },
+        "ctrl+r": {
+            "nle_move": 47,
+            "has_graphics": false,
+            "graphic_component": 0,
+            "controller": "keys"
+        },
+        "ctrl+t": {
+            "nle_move": 48,
+            "has_graphics": false,
+            "graphic_component": 0,
+            "controller": "keys"
+        },
+        "ctrl+u": {
+            "nle_move": 49,
+            "has_graphics": false,
+            "graphic_component": 0,
+            "controller": "keys"
+        },
+        "ctrl+o": {
+            "nle_move": 50,
             "has_graphics": false,
             "graphic_component": 0,
             "controller": "keys"
