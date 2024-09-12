@@ -212,6 +212,12 @@ is_game_running(DONE,false):- arg(1,DONE,true).
 %is_game_running(DONE, true):- format('is_game_running True ~n'),INFO.end_status == 0.
 %is_game_running(DONE, false):- format('is_game_running False ~n'),INFO.end_status == 1.
 
+%%call with OBS.message -- transform message into atom to do actions with. 
+get_message(MESSAGE,ATOM_STRING):-
+    findall(El, (member(El_py,MESSAGE), py_call(El_py:item(), El),El=\=0), NEWCHAR),
+    atom_codes(ATOM_STRING,NEWCHAR).
+
+
 
 /**
  * Get game information from the ENV environment.
@@ -222,7 +228,7 @@ is_game_running(DONE,false):- arg(1,DONE,true).
  * @param DONE If the game is done.
  * @param INFO Additional game info.
  */
-get_info_from_map(ENV, OBS, REWARD, DONE, INFO) :- arg(1, ENV, OBS), arg(2,ENV, REWARD), arg(3, ENV, DONE), arg(4, ENV, INFO).
+get_info_from_map(ENV, OBS, REWARD, DONE, INFO) :- arg(1, ENV, OBS), arg(2,ENV, REWARD), arg(3, ENV, DONE), arg(5, ENV, INFO).
 
 
 /**
@@ -244,7 +250,7 @@ confirm_step_door(TEMP_DATA,X2,Y2,_):-
  * @param Y2 The target Y-coordinate.
  * @param ACTION The action being confirmed.
  */
-confirm_step(_,TEMP_DATA,X2,Y2,_,_):-
+confirm_step(TEMP_DATA,X2,Y2,_,_):-
     get_player_pos(TEMP_DATA,ROW,COL),
     X2 == ROW,
     Y2 == COL.
@@ -257,10 +263,10 @@ confirm_step(_,TEMP_DATA,X2,Y2,_,_):-
  * @param Y2 The target Y-coordinate.
  * @param ACTION The action being confirmed.
  */
-confirm_step(ENV,_,X2,Y2,ACTION,GAME):-
-    move(ACTION, ENV, GAME, TEMP_DATA),
+confirm_step(_,X2,Y2,ACTION,GAME):-
+    move(ACTION, GAME, TEMP_DATA),
     %renderMap(ENV),
-    confirm_step(ENV,TEMP_DATA,X2,Y2,ACTION,GAME).
+    confirm_step(TEMP_DATA,X2,Y2,ACTION,GAME).
 
 
 /**
@@ -287,7 +293,7 @@ execute_action(ENV, [(X1,Y1),(X2,Y2)|T], GOAL, WORLD_DATA, GAME):-
     MOVE_X is X2 - X1,
     MOVE_Y is Y2 - Y1,
     move_py(MOVE_X,MOVE_Y,ACTION), %translates MOVE_X & MOVE_Y into a direction
-    move(ACTION, ENV, GAME, TEMP_DATA),  %moves in the corresponding direction
+    move(ACTION, GAME, TEMP_DATA),  %moves in the corresponding direction
     %renderMap(ENV),
     confirm_step(ENV,TEMP_DATA,X2,Y2,ACTION,GAME), %confirms if the player is in the new square, if he is not, redo the action
     isFloorOnce(X1,Y1),
@@ -730,6 +736,6 @@ game_run(_, _, GAME, true):-
  * Starts the game environment and initiates the game loop.
  */
 gameStart(ENV,GAME):- %game_innit(ENV),
-    move('_SEARCH_', ENV, GAME, WORLD_DATA),
+    move('_SEARCH_', GAME, WORLD_DATA),
     game_run(ENV, WORLD_DATA, GAME, true).
     %nb_setval(game,GAME).

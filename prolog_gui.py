@@ -24,7 +24,7 @@ KEY_MAP = {
     10: 'down',
     11: 'w',
     12: 'o',
-    13: 'k',
+    13: 'K',
     14: 's',
     15: 'e',
     16: 'backspace',
@@ -78,16 +78,16 @@ def display_inv(env):
 
 #step function that plays into the env and updates the graphic display (used by prolog)
 
-def step(env,num,game:interface.Game):
+def step(key,game:interface.Game):
     
     #step_res = env.step(num)
-    key_name = KEY_MAP[num]
-    step_res = game.prolog_move(key_name)
+    #key_name = KEY_MAP[num]
+    step_res = game.prolog_move(key)
     
     #game.graphics.update_graphics(env,0)
 
     #memory leak susceptible. calling game over before terminating prolog will only terminate prolog after another game is either started or the game finishes
-    if step_res == False:
-        game.game_over()
+    # if step_res == False:
+    #     game.game_over()
 
     return step_res

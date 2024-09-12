@@ -302,7 +302,6 @@ class Buttons(Keys):
         self.pos = (0,0)     #placeholder
 
 
-
 #Keyset of animated keys of same type
 class Joypad:
     """
@@ -1471,8 +1470,8 @@ class Game:
         # "NetHackGold",
         # "NetHackEat",
         # "NetHackScout",
-        # "NetHackChallenge", actions=navigate_actions
-        env = gym.make("NetHackScore-v0", actions=navigate_actions,allow_all_yn_questions=True)
+        # "NetHackChallenge", actions=navigate_actions #    confirm_step(ENV,DATA,X2,Y2,ACTION,GAME)
+        env = gym.make("NetHackScore-v0", actions=navigate_actions)
         #env.print_action_meanings()´
 
         env.reset()
@@ -1482,7 +1481,6 @@ class Game:
         pygame.display.set_caption("Nethack: Prolog Agent")
         self.init_prolog_game()
         janus.query_once("main:main_start(ENV,GAME).",{'ENV':self.env,"GAME":self})
-        self.game_over()
 
     def init_prolog_game(self):
         self.graphics.update_action_list()
@@ -1547,6 +1545,8 @@ class Game:
                 self.highscore(self.score,lvl)
             else:
                 self.board.insert_highscore(self.score,lvl,'PLG')
+            
+            self.board.update_json()
 
         #debug to see if game really ended
         pygame.time.wait(1000)
@@ -1786,7 +1786,6 @@ class Game:
             self.controller.controller_set['special'].loop_animation()
         
         self.board.insert_name(name,index)
-        self.board.update_json()
 
     def game_over(self):        
         self.controller.controller_set['special'].set_iddle('space')
