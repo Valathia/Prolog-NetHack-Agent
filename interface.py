@@ -1207,7 +1207,7 @@ class Graphics:
         # for key in stat_dict:
         #     print(f'{key} - {stat_dict[key]}')
         
-        hp_text = f'HP {stat_dict['hp']} ({stat_dict['maxhp']})'
+        hp_text = f'HP {stat_dict["hp"]} ({stat_dict["maxhp"]})'
         hp_bar_total_width = 240
         max_hp = int(stat_dict['maxhp'])
         hp = int(stat_dict['hp'])
@@ -1480,7 +1480,7 @@ class Game:
     def init_prolog(self):
         pygame.display.set_caption("Nethack: Prolog Agent")
         self.init_prolog_game()
-        janus.query_once("main:main_start(ENV,GAME).",{'ENV':self.env,"GAME":self})
+        janus.query_once("main:main_start(GAME).",{"GAME":self})
 
     def init_prolog_game(self):
         self.graphics.update_action_list()
@@ -1503,9 +1503,6 @@ class Game:
             
             if step_res[0]['blstats'][9] > self.score:  #type: ignore
                 self.score =  int(step_res[0]['blstats'][9])  #type: ignore
-            
-            if step_res[2]: #type: ignore
-                return False
 
         if self.controller.controller_set['joystick'].is_pressed:
             self.sound.key_sounds[key_name].play()
@@ -1516,8 +1513,10 @@ class Game:
             self.sound.files['button'].play()
             self.controller.controller_set['buttons'].release_key(self.clock)
         
-        
-        return step_res
+        if step_res[2]: #type: ignore
+            return True
+
+        return False
 
     def choose_action(self,action):
         if not action:
@@ -1534,7 +1533,7 @@ class Game:
             self.play_game()
         else:
             self.init_prolog()
-        
+            print(f'Is game really over? {self.env.unwrapped.last_observation[14][0]}')
         self.sound.files['game'].fadeout(1000)
         
         lvl = int(self.env.unwrapped.last_observation[15][0]) #type: ignore
@@ -1944,6 +1943,6 @@ class Game:
 # portas: 1 abre, 2 entra na porta
 # door resists: é ir contra a porta até abri.
 # só door locked é que precisa de kick
-
+# need to change prolog move to a bool value after all changes are done
 if __name__ == '__main__':
     Game()

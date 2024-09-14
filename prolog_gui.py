@@ -82,7 +82,7 @@ def step(key,game:interface.Game):
     
     #step_res = env.step(num)
     #key_name = KEY_MAP[num]
-    step_res = game.prolog_move(key)
+    is_game_over = game.prolog_move(key)
     
     #game.graphics.update_graphics(env,0)
 
@@ -90,4 +90,4 @@ def step(key,game:interface.Game):
     # if step_res == False:
     #     game.game_over()
 
-    return step_res
+    return is_game_over
