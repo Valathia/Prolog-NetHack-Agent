@@ -26,8 +26,7 @@ main_start(GAME):-
     use_module(library(janus)), 
     use_module(library(system)), 
     ensure_term_environment, 
-    consult('./codes.pl'),
-    consult('./actions.pl'),
+    consult('./utility.pl'),
     consult('./protocols.pl'),
     consult('./game_run.pl'),
     gameStart(GAME).

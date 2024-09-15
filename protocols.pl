@@ -1,239 +1,5 @@
 % added for the benifit of the syntax tool
-% :- include('./game_run.pl').
-
-isWayback(X,Y):-
-    \+ wayback(X,Y),
-    asserta(wayback(X,Y)),!.
-
-isWayback(X,Y):- wayback(X,Y).
-/**
- * Base case for isOnce/2 when a door has not been yet used. Assers the door as seen.
- *
- * @param X The X coordinate of the path.
- * @param Y The Y coordinate of the path.
- */
-
-isOnce(X,Y):- 
-    \+ once(X,Y),
-    asserta(once(X,Y)),!.
-
-/**
- * Predicate to lock a door. After a door has been passed through at least twice, it's taken off the objectives list. 
- *
- * @param X The X coordinate of the path.
- * @param Y The Y coordinate of the path.
- */
-
-isOnce(X,Y):- 
-    once(X,Y),
-    retract(once(X,Y)),
-    asserta(soft_lock(X,Y)),!.
-
-isOnce(X,Y):- 
-    soft_lock(X,Y).
-
-/**
- * Base case for isFloorOnce/2 when a floortunnel tile has not been yet used. Asserts the tile as seen once.
- *
- * @param X The X coordinate of the path.
- * @param Y The Y coordinate of the path.
- */
-isFloorOnce(X,Y):- 
-    \+ floor_once(X,Y),
-    \+ once(X,Y),
-    \+ soft_lock(X,Y),
-    asserta(floor_once(X,Y)),!.
-
-/**
- * If a floortunnel tile has been used once, it retracts that fact and asserts it's been done twice. 
- *
- * @param X The X coordinate of the path.
- * @param Y The Y coordinate of the path.
- */
-isFloorOnce(X,Y):-
-    floor_once(X,Y),
-    retract(floor_once(X,Y)),
-    asserta(floor_twice(X,Y)),!.
-
-/**
- * If a floortunnel tile has been used twice, it retracts that fact and asserts it as locked, removing it from the objectives list, however it remains as a tile that can be traversed.
- *
- * @param X The X coordinate of the path.
- * @param Y The Y coordinate of the path.
- */
-isFloorOnce(X,Y):-
-    floor_twice(X,Y),
-    retract(floor_twice(X,Y)),
-    asserta(floor_locked(X,Y)),!.
-
-isFloorOnce(X,Y):- floor_locked(X,Y).
-isFloorOnce(X,Y):- once(X,Y).
-isFloorOnce(X,Y):- soft_lock(X,Y).
-
-
-end_execute_action_tunnel(_,DATA,GAME) :-
-    move('_SEARCH_', GAME, DATA).
-
-/**
- * Executes an action sequence in the game environment based on the given goal.
- * If the goal corresponds to a closed door, it invokes the pick_protocol_2 to restart the selection process
- *
- * @param ENV The current game environment.
- * @param Path A list of coordinates representing the path to be executed, [(X1,Y1),(X2,Y2)].
- *             Moves from (X1,Y1) to (X2,Y2).
- * @param GOAL The current goal or objective in the game.
- * @param DATA Additional data associated with the action execution.
- */
-
-execute_action_tunnel(ENV, [(X1,Y1),(X2,Y2)], 'door', DATA,GAME):-
-    format('Execute_action Last Two Moves - Door ~n'),
-    py_call(prolog_gui:output_text('Execute_action Last Two Moves - Door','',GAME)),
-    pick_protocol_2(ENV, [(X1,Y1),(X2,Y2)], 'door',' door', DATA,GAME).
-
-/**
- * 
- * If the goal corresponds to a passage, it invokes the pick_protocol_2 to restart the selection process
- *
- * @param ENV The current game environment.
- * @param Path A list of coordinates representing the path to be executed, [(X1,Y1),(X2,Y2)].
- *             Moves from (X1,Y1) to (X2,Y2).
- * @param GOAL The current goal or objective in the game.
- * @param DATA Additional data associated with the action execution.
- */
-
-execute_action_tunnel(ENV, [(X1,Y1),(X2,Y2)], 'passage', DATA,GAME):-
-    format('Execute_action Last Two Moves - Passage ~n'),
-    py_call(prolog_gui:output_text('Execute_action Last Two Moves - Passage','',GAME)),
-    pick_protocol_2(ENV, [(X1,Y1),(X2,Y2)], 'passage', 'passage', DATA,GAME).
-
-/**
- * 
- * If the goal corresponds to a open door, it invokes the pick_protocol_2 to restart the selection process
- *
- * @param ENV The current game environment.
- * @param Path A list of coordinates representing the path to be executed, [(X1,Y1),(X2,Y2)].
- *             Moves from (X1,Y1) to (X2,Y2).
- * @param GOAL The current goal or objective in the game.
- * @param DATA Additional data associated with the action execution.
- */
-execute_action_tunnel(ENV, [(X1,Y1),(X2,Y2)], 'doorop', DATA,GAME):-
-    format('Execute_action Last Two Moves - Open Door ~n'),
-    py_call(prolog_gui:output_text('Execute_action Last Two Moves - Open Door','',GAME)),
-    pick_protocol_2(ENV, [(X1,Y1),(X2,Y2)], 'doorop', 'doorop' ,DATA,GAME).
-
-/**
- * 
- * If the goal corresponds to a boulder, it invokes a protocol to handle the action.
- *
- * @param ENV The current game environment.
- * @param Path A list of coordinates representing the path to be executed, [(X1,Y1),(X2,Y2)].
- *             Moves from (X1,Y1) to (X2,Y2).
- * @param GOAL The current goal or objective in the game.
- * @param DATA Additional data associated with the action execution.
- */
-execute_action_tunnel(ENV, [(X1,Y1),(X2,Y2)], 'boulder', DATA,GAME):-
-    format('Execute_action Last Two Moves - BOULDER ~n'),
-    py_call(prolog_gui:output_text('Execute_action Last Two Moves - BOULDER','',GAME)),
-    boulder_protocol(ENV,[(X1,Y1),(X2,Y2)],'boulder',DATA, GAME).
-
-/**
- * Executes the action to tunnel through blocked floors or obstacles in the game environment.
- *
- * @param ENV The game environment.
- * @param [(X1,Y1),(X2,Y2)] The coordinates representing the movement path from (X1,Y1) to (X2,Y2).
- * @param GOAL The current goal or objective.
- * @param DATA The resulting game data after executing the action tunnel.
- */
-execute_action_tunnel(ENV, [(X1,Y1),(X2,Y2)], GOAL, DATA,GAME):- 
-    format('Execute_action: TUNNEL Last Two Moves ~n'),
-    py_call(prolog_gui:output_text('Execute_action Last Two Moves - TUNNEL','',GAME)),
-    %pick_protocol_2(ENV,[(X1,Y1),(X2,Y2)], GOAL, GOAL, DATA).
-    MOVE_X is X2 - X1,
-    MOVE_Y is Y2 - Y1,
-    move_py(MOVE_X,MOVE_Y,ACTION),
-    move(ACTION, GAME, TEMP_DATA),
-    %renderMap(ENV),
-    confirm_step(TEMP_DATA,X2,Y2,ACTION,GAME),
-    %retract(wayback(_,_)),
-    asserta(wayback(X1,Y1)),
-    isFloorOnce(X1,Y1),
-    protocol(ENV,(X2,Y2),ACTION,GOAL,DATA,GAME).
-
-
-execute_action_tunnel(ENV, [(X1,Y1),(X2,Y2)], _, DATA,GAME):- 
-    format('Execute_action: TUNNEL Last Two Moves - FAILSAFE Retract FAIL (hopefully) ~n'),
-    py_call(prolog_gui:output_text('Execute_action: TUNNEL Last Two Moves - FAILSAFE Retract FAIL (hopefully)','',GAME)),
-    %pick_protocol_2(ENV,[(X1,Y1),(X2,Y2)], GOAL, GOAL, DATA).
-    move('_SEARCH_',  GAME,TEMP_DATA),
-    confirm_step_door(TEMP_DATA,X2,Y2,GAME),
-    asserta(wayback(X1,Y1)),
-    isFloorOnce(X1,Y1),
-    end_execute_action_tunnel(ENV,DATA).
-
-execute_action_tunnel(_, [(_,_),(_,_)], _, DATA,GAME):-
-    format('Execute_action: TUNNEL Last Two Moves - FAILSAFE BIG FAIL (couldnt confirm move) - Terminate ~n'),
-    py_call(prolog_gui:output_text('Execute_action: TUNNEL Last Two Moves - FAILSAFE BIG FAIL (couldnt confirm move) - Terminate','',GAME)),
-    move('_SEARCH_', GAME, DATA).
-
-
-
-/**
- * Recursively executes the action tunnel for a series of coordinates representing the movement path.
- *
- * @param ENV The game environment.
- * @param [(X1,Y1),(X2,Y2)|T] The list of coordinates representing the movement path.
- * @param GOAL The current goal or objective.
- * @param WORLD_DATA The resulting game data after executing the action tunnel for the entire path.
- */
-execute_action_tunnel(ENV, [(X1,Y1),(X2,Y2)|T], GOAL, WORLD_DATA,GAME):- 
-    format('Execute_action Tunnel List ~n'),
-    py_call(prolog_gui:output_text('Execute_action Tunnel Lists','',GAME)),
-    format('(~w,~w) to (~w,~w)',[X1,Y1,X2,Y2]),
-    MOVE_X is X2 - X1,
-    MOVE_Y is Y2 - Y1,
-    move_py(MOVE_X,MOVE_Y,ACTION),
-    move(ACTION, GAME,TEMP_DATA),
-    %renderMap(ENV),
-    confirm_step(TEMP_DATA,X2,Y2,ACTION,GAME),
-    asserta(wayback(X1,Y1)),
-    isFloorOnce(X1,Y1),
-    execute_action_tunnel(ENV,[(X2,Y2)|T], GOAL, WORLD_DATA,GAME).
-
-
-/**
- * Executes the tunneling protocol to navigate through the game environment.
- *
- * @param ENV The game environment.
- * @param DATA The resulting game data after executing the tunneling protocol.
- */
-tunneling_protocol(ENV,DATA,GAME):-
-    format('Tunneling Protocol - CHOO CHOO ~n'),
-    py_call(prolog_gui:output_text('Tunneling Protocol - CHOO CHOO','',GAME)),
-    move('_SEARCH_', GAME, TEMP_DATA),
-    get_info_from_map(TEMP_DATA, OBS, _, _, _),
-    translate_glyphs(OBS.glyphs, TRANSLATED_MATRIX),
-    get_Player_info(OBS.blstats, POS_COL, POS_ROW, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _),
-    get_next_move(TRANSLATED_MATRIX, POS_ROW, POS_COL, GOAL, SOL,GAME),
-    %get_elem(TRANSLATED_MATRIX,X,Y,GOAL),
-    format('Player  row:~w col:~w ',[POS_COL,POS_ROW]),
-    execute_action_tunnel(ENV, SOL, GOAL, DATA,GAME).
-
-
-/**
- * Handles the case when a dead-end is encountered during tunneling.
- *
- * @param ENV The game environment.
- * @param DATA The resulting game data after handling the dead-end.
- */
-tunneling_protocol(_,DATA,GAME):-
-    format('Tunneling failsafe, dont retract all - End ~n'),
-    py_call(prolog_gui:output_text('Tunneling failsafe, dont retract all - End','',GAME)),
-    move('_SEARCH_',GAME, DATA).
-    %retractall(wayback(_,_)).
-
-
-
-
+:- consult('./utility.pl').
 
 /**
  * Recursively pushes a boulder down a tunnel untill it reaches a dead end and cannot make further movements.
@@ -243,34 +9,34 @@ tunneling_protocol(_,DATA,GAME):-
  * @param GOAL The current goal or objective.
  * @param DATA The resulting game data after pushing the boulder untill it reaches a dead end.
  */
-boulder_protocol(ENV,[(X1,Y1),(X2,Y2)],GOAL,DATA,GAME):-
-    format('BOULDER PROTOCOL ~n'),
-    py_call(prolog_gui:output_text('BOULDER PROTOCOL','',GAME)),
-    MOVE_X is X2 - X1,
-    MOVE_Y is Y2 - Y1,
-    move_py(MOVE_X,MOVE_Y,ACTION),
-    move(ACTION,GAME, TEMP_DATA),
-    %renderMap(ENV),
-    confirm_step_door(TEMP_DATA,X2,Y2,GAME),
-    asserta(wayback(X1,Y1)),
-    NEWX2 is X2 + MOVE_X,
-    NEWY2 is Y2 + MOVE_Y,
-    boulder_protocol(ENV,[(X2,Y2),(NEWX2,NEWY2)],GOAL,DATA,GAME).
+% boulder_protocol(ENV,[(X1,Y1),(X2,Y2)],GOAL,DATA,GAME):-
+%     format('BOULDER PROTOCOL ~n'),
+%     py_call(prolog_gui:output_text('BOULDER PROTOCOL','',GAME)),
+%     MOVE_X is X2 - X1,
+%     MOVE_Y is Y2 - Y1,
+%     move_py(MOVE_X,MOVE_Y,ACTION),
+%     move(ACTION,GAME, TEMP_DATA),
+%     %renderMap(ENV),
+%     confirm_step_door(TEMP_DATA,X2,Y2,GAME),
+%     asserta(wayback(X1,Y1)),
+%     NEWX2 is X2 + MOVE_X,
+%     NEWY2 is Y2 + MOVE_Y,
+%     boulder_protocol(ENV,[(X2,Y2),(NEWX2,NEWY2)],GOAL,DATA,GAME).
 
 
-/**
- * When comfirm_step_door fails, the player should stop pushing the boulder and unify the Data parameter. 
- *
- * @param ENV The game environment.
- * @param [(_,_),(X2,Y2)|T] The list of coordinates representing the movement path.
- * @param DATA The resulting game data after pushing the boulder untill it reaches a dead end.
- */
-boulder_protocol(_,[(_,_),(X2,Y2)],_,DATA,GAME):-
-    format('Boulder Protocol Lock Boulder - Search End ~n'),
-    py_call(prolog_gui:output_text('Boulder Protocol Lock Boulder - Search End - theres a retract here','',GAME)),
-    asserta(locked(X2,Y2)),
-    retractall(wayback(_,_)),
-    move('_SEARCH_', GAME,DATA).
+% /**
+%  * When comfirm_step_door fails, the player should stop pushing the boulder and unify the Data parameter. 
+%  *
+%  * @param ENV The game environment.
+%  * @param [(_,_),(X2,Y2)|T] The list of coordinates representing the movement path.
+%  * @param DATA The resulting game data after pushing the boulder untill it reaches a dead end.
+%  */
+% boulder_protocol(_,[(_,_),(X2,Y2)],_,DATA,GAME):-
+%     format('Boulder Protocol Lock Boulder - Search End ~n'),
+%     py_call(prolog_gui:output_text('Boulder Protocol Lock Boulder - Search End - theres a retract here','',GAME)),
+%     asserta(locked(X2,Y2)),
+%     retractall(wayback(_,_)),
+%     move('_SEARCH_', GAME,DATA).
 
 
 /**
@@ -356,12 +122,12 @@ protocol(TranslatedMatrix,Action,[(X1,Y1),(X2,Y2)],GameOver,Game) :-
     get_info_from_env(Game, _, Message, _, _, InQuestion, _, _),
     check_mishap(InQuestion, Game),
     (check_sub(Message,'can\'t move diagonally'),
-     diag_correct(TranslatedMatrix,Move,X1,Y1,NewHead),
-     append(NewHead,[(X2,Y2)],NewList),
-     execute_path(TranslatedMatrix,NewList, Action, GameOver, TempGameOver, Game),!;
-     confirm_step(X1,Y1,X2,Y2,Game,TempGameOver),
-     protocol(TranslatedMatrix,Action,GameOver,Game) ;
-     GameOver = TempGameOver).
+    diag_correct(TranslatedMatrix,Move,X1,Y1,NewHead),
+    append(NewHead,[(X2,Y2)],NewList),
+    execute_path(TranslatedMatrix,NewList, Action, GameOver, TempGameOver, Game),!;
+    confirm_step(X1,Y1,X2,Y2,Game,TempGameOver),
+    protocol(TranslatedMatrix,Action,GameOver,Game) ;
+    GameOver = TempGameOver).
 
 % /**
 %  * Protocol for executing actions based on game objectives, ensuring the player moves into the objective cell.
