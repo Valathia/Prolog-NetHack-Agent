@@ -1877,7 +1877,6 @@ class Game:
                         if obs[0]['blstats'][9] > self.score:           
                             self.score =  int(obs[0]['blstats'][9])      
 
-                        print("Is stairs? ", self.env.unwrapped.last_observation[15][4]) #type: ignore
                         if obs[2] == running:   
                             running = False
                             break
@@ -1940,5 +1939,6 @@ class Game:
 #   - é preciso ver que a fome tá num sitio diferente daquele que inicialmente esperado. usar o mesmo que ta a ser usado no interface
 #   - as diagonais estão só a ser realizadas dentro de corredores, de tile de chão de corredor para tile de chão de corredor
 #   - não está a empurrar boulders, boulders não estão na valid list.
+
 if __name__ == '__main__':
     Game()
