@@ -8,7 +8,7 @@ To make an action, the agent invokes a python method from within prolog, using t
 This way, the game monad calls the prolog agent that is itself a monad, that makes calls to methods inside the game object, when the prolog process ends, control is naturally passed onto the python process. 
 
 Prolog:
-- Astar will probably be subbed for a more reliable algorithm. - The sabe objective lists keep being readded when explicitly stated not to
+- Astar will probably be subbed for a more reliable algorithm. - The sabe objective lists keep being re-added when explicitly stated not to
 - Issues with items obstructing objectives have been mitigated but not completly solved
 - Instead of tacking actions based on unreliable visual queues, the agent now takes decisions based on the feedback provided by the messages.  (ex: knowing if a kicked door opened)
 - using messages as atoms has produced more streamlined code for the protocol part. 
@@ -17,10 +17,17 @@ Prolog:
 - enhance decision making overall
 
 Python:
-- Nethack can be played as either Human or Prolog Agent
+- Nethack can be played as either a Human or Prolog Agent
 - There's a Leaderboard that contains highscores recorded both from human players and the prolog agent. 
-- The Joystick and Buttons work with the inputs of the game for both human players and the prolog agent.
-- The game has SFX and Sound
+- The Joystick and Buttons work with the inputs of the game for both the human players and the prolog agent.
+- The game has SFX and Background Music
+
+
+Python 3.12 and the latest version of SWI are needed to run the project.
+A python requirements.txt is included
+Project runs from: *interface.py*
+
+*will be changed in the future to be more sane*
 
 Important info regarding NLE used:
 https://gist.github.com/HanClinto/310bc189dcb34b9628d5151b168a34b0
