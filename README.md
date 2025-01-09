@@ -1,18 +1,26 @@
 Working on a pygame GUI for a prolog agent.
 NLE is being used as an interface between nethack and prolog.
 The logic of the agent is in Prolog, while the environment and GUI are in python.
-There's a dockerfile to run the dependencies, it's assumed it's being launched from a Mac silicon with XQuartz installed (to display pygame from the docker container)
+The Docker file is no longer needed to run the dependecies since a Swi-prolog update.
+
+The game is instantiated on the python side, the game object is passed onto the prolog when the agent is picked. 
+To make an action, the agent invokes a python method from within prolog, using the game object it received. 
+This way, the game monad calls the prolog agent that is itself a monad, that makes calls to methods inside the game object, when the prolog process ends, control is naturally passed onto the python process. 
 
 Prolog:
-- edge cases are being reviewed within the protocols
-- Astar needs to move on from objectives when a path does not exist
-- remove peaceful monsters/characters from the "monster roster" so that agent doesn't try to attack them
+- Astar will probably be subbed for a more reliable algorithm. - The sabe objective lists keep being readded when explicitly stated not to
+- Issues with items obstructing objectives have been mitigated but not completly solved
+- Instead of tacking actions based on unreliable visual queues, the agent now takes decisions based on the feedback provided by the messages.  (ex: knowing if a kicked door opened)
+- using messages as atoms has produced more streamlined code for the protocol part. 
+- Not currently pushing boulders around... it's complicated... 
+- Healing and eating from inventory needs to be worked on
 - enhance decision making overall
 
 Python:
-- Integrate Button class with image asset creation so that it can be used in the most general case.
-- still missing 2 components: virtual keyboard that shows agent inputs and some metric measuring 
-- needs a graphic asset to frame/display the info
+- Nethack can be played as either Human or Prolog Agent
+- There's a Leaderboard that contains highscores recorded both from human players and the prolog agent. 
+- The Joystick and Buttons work with the inputs of the game for both human players and the prolog agent.
+- The game has SFX and Sound
 
 Important info regarding NLE used:
 https://gist.github.com/HanClinto/310bc189dcb34b9628d5151b168a34b0
