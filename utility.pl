@@ -69,7 +69,7 @@ goals('doorop').
 goals('passage').
 goals('floortunel').
 %goals('boulder').
-%goals('floor').
+goals('floor').
 
 goal_action('monster','combat').
 goal_action('food','eat_food').
@@ -80,6 +80,8 @@ goal_action('door','door').
 goal_action('doorop','The door opens.').
 goal_action('passage','The door opens.').
 goal_action('floortunel','explore').
+goal_action('floor','explore').
+goal_action('no goals','quit').
 
 is_floor('floortunel').
 /**
@@ -94,8 +96,8 @@ is_floor('floortunel').
 :- dynamic(floor_locked/2).
 :- dynamic(soft_lock/2).
 :-dynamic(edge/3).
-
-
+:-dynamic(disconect_edge/2).
+:-dynamic(is_over/1).
 
 isWayback(X,Y):-
     \+ wayback(X,Y),
@@ -205,7 +207,7 @@ check_mishap(_,_).
  * @param LEVEL_NUMBER The current level number.
  */
 
- get_Player_info(OBS_BLSTATS, POS_X, POS_Y, STR_PERC, STR, DEX, CONS, INT, WIS, CHAR, SCORE, HIT, MAX_HIT, DEPTH, GOLD, ENERGY, MAX_ENERGY, ARMOR_C, MONSTER_LVL, EXPLVL, EXP_P, TIME, HUNGER, CARRY_CAP, DUNGEON_NUMBER, LEVEL_NUMBER):- 
+get_Player_info(OBS_BLSTATS, POS_X, POS_Y, STR_PERC, STR, DEX, CONS, INT, WIS, CHAR, SCORE, HIT, MAX_HIT, DEPTH, GOLD, ENERGY, MAX_ENERGY, ARMOR_C, MONSTER_LVL, EXPLVL, EXP_P, TIME, HUNGER, CARRY_CAP, DUNGEON_NUMBER, LEVEL_NUMBER):- 
     nth1(1, OBS_BLSTATS, POS_X_PY), py_call(POS_X_PY:item(), POS_X), 
     nth1(2, OBS_BLSTATS, POS_Y_PY), py_call(POS_Y_PY:item(), POS_Y), 
     nth1(3, OBS_BLSTATS, STR_PERC_PY), py_call(STR_PERC_PY:item(), STR_PERC), 
@@ -311,11 +313,11 @@ get_elem(MATRIX,INDEX_ROW,INDEX_COL,ELEM) :-
  * @param INFO The game info.
  * @param IsRunning True if the game is running, false otherwise.
  */
+truth_val(GameOver_py,_):- arg(1,GameOver_py,true),retract(is_over(false)),asserta(is_over(true)),fail.
 truth_val(GameOver_py,GameOver):- arg(1,GameOver_py,GameOver).
 
-
-is_game_running(DONE,true):- arg(1,DONE,false).
-is_game_running(DONE,false):- arg(1,DONE,true).
+% is_game_running(DONE,true):- arg(1,DONE,false).
+% is_game_running(DONE,false):- arg(1,DONE,true).
 %is_game_running(DONE, true):- format('is_game_running True ~n'),INFO.end_status == 0.
 %is_game_running(DONE, false):- format('is_game_running False ~n'),INFO.end_status == 1.
 
@@ -363,9 +365,8 @@ get_info_from_env(Game, GlyphMatrix, Message, Stats, GameOver, InQuestion, Stair
  * @param ACTION The action being confirmed.
  */
 
-confirm_step(_,_,_,_,_,true).
 
-confirm_step(X1,Y1,X2,Y2,Game,false):-
+confirm_step(X1,Y1,X2,Y2,Game):-
     format('Confirming Step ~n '),
     get_player_pos(Game,ROW,COL),
     X2 == ROW,
@@ -394,15 +395,22 @@ confirm_step(X1,Y1,X2,Y2,Game,false):-
 diag_correct(TranslatedMatrix, Move, X1,Y1,[(X1,Y1),NewPos]):-
     format('Correcting Diagonal ~n'),
     split_diag(Move,Comp_1,Comp_2),
-    (diag_move(TranslatedMatrix,X1,Y1,Comp_1,NewPos);
-    diag_move(TranslatedMatrix,X1,Y1,Comp_2,NewPos)).
+    (diag_move(TranslatedMatrix,Move,X1,Y1,Comp_1,NewPos);
+    diag_move(TranslatedMatrix,Move,X1,Y1,Comp_2,NewPos)).
 
-diag_move(TranslatedMatrix,X1,Y1,Comp,(NewX,NewY)):-    
+diag_move(TranslatedMatrix,_,X1,Y1,Comp,(NewX,NewY)):-    
     move_py(NewMove_X,NewMove_Y,Comp),
     NewX is X1+NewMove_X,
     NewY is Y1+NewMove_Y,
     get_elem(TranslatedMatrix,NewX,NewY,Elem),
     valid(Elem).
+
+%if no possible correction can be done,disconnect edge:
+% diag_move(_,Move,X1,Y1,_,_):-
+%     move_py(MOVE_X,MOVE_Y,Move),
+%     X2 is X1 + MOVE_X,
+%     Y2 is Y1 + MOVE_Y,
+%     asserta(disconect_edge((X1,Y1),(X2,Y2))).
 
     % move_py(NewMove_X2,NewMove_Y2,Comp_2),
     % NewX2 is NewX1+NewMove_X2,

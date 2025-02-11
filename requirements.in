@@ -1,0 +1,9 @@
+cloudpickle==3.0.0
+Farama-Notifications==0.0.4
+gymnasium==0.29.1
+janus_swi==1.4.0
+nle==1.0.0
+numpy==2.1.0
+pybind11==2.13.5
+pygame==2.6.0
+typing_extensions==4.12.2

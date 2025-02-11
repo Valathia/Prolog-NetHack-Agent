@@ -876,6 +876,7 @@ class Leaderboard:
         self.header = pygame.font.Font("assets/font.ttf", 30).render('High Scores',True, "#ff742f")
         self.header_space = 30+10 #45
         self.header_pos = 308- self.header.get_rect().centerx
+        self.score_list = []
         self.board = self.init_leaderboard()
         self.images = images
         self.size = len(self.board)
@@ -885,6 +886,7 @@ class Leaderboard:
         self.assets = [(self.images.images['highscore_header'],(0,0)),(self.images.images['new_highscore'],(0,0))]
         self.json_keys = ['RANK','NAME','LVL','SCORE']
 
+
     def init_leaderboard(self):
         board = [['RANK','NAME','LVL','SCORE']]
         file = open(self.file)
@@ -893,6 +895,7 @@ class Leaderboard:
             obj = data[keys]
             line = [keys,obj['NAME'],obj['LVL'],obj['SCORE']]
             board.append(line)
+            self.score_list.append((obj['NAME'],obj['LVL'],obj['SCORE']))
         file.close()
         return board
     
@@ -913,40 +916,20 @@ class Leaderboard:
             return index 
         else:
             return index + 1
+    
+    def search(self,score,lvl):
+        el = ('AAA',lvl,score)
+        self.score_list[-1] = el
+        self.score_list.sort(key=lambda tup: (tup[2], tup[1]), reverse=True)
+        return self.score_list.index(el)
 
-    def search(self,score,lvl,i,j)-> int:
-        score_index = 3
-        mid = i + (j-i) // 2
-
-        mid_score = self.board[mid][score_index]
-
-        if mid_score == score:
-            return self.lvl_comp(lvl,mid)
-
-        if score > mid_score:
-            j = mid - 1
-        elif score < mid_score:
-            i = mid + 1
-        
-        if i==j:
-            if self.board[i][score_index] < score:
-                return i 
-            else:
-                return i+1
-        # if j==1:
-        #     if  score == self.board[j][score_index]:
-        #         return self.lvl_comp(lvl,j)
-        #     elif score > self.board[j][score_index]:
-        #         return j 
-        #     else:
-        #         return j+1
-            
-        return self.search(score,lvl,i,j)            
-
-    def is_highscore(self,score):
+    def is_highscore(self,score,lvl):
         last = len(self.board) - 1
         if score >= self.board[last][3]:
-            return True
+            if score > self.board[last][3] or lvl > self.board[last][2]:
+                return True
+            else:
+                return False 
         else:
             return False 
 
@@ -954,26 +937,18 @@ class Leaderboard:
         self.board[index][1] = name
 
     def insert_highscore(self,score,lvl,name):
-        index:int = self.search(score,lvl,1,self.size-1)
+        index:int = self.search(score,lvl)
         print(index)
-        old_name = self.board[index][1]
-        old_level = self.board[index][2]
-        old_score = self.board[index][3]
-        self.board[index][1] = name 
-        self.board[index][2] = lvl 
-        self.board[index][3] = score
+        size = len(self.score_list)
+        self.board[index+1][1] = name
+        self.board[index+1][2] = lvl
+        self.board[index+1][3] = score
 
-        for i in range(index+1,self.size):
-            aux_name = self.board[i][1]
-            aux_level = self.board[i][2]
-            aux_score = self.board[i][3]
-            self.board[i][1] = old_name
-            self.board[i][2] = old_level 
-            self.board[i][3] = old_score
-            old_name = aux_name
-            old_level = aux_level
-            old_score = aux_score
-        
+        for i in range(index+1,size):
+            self.board[i+1][1] = self.score_list[i][0]
+            self.board[i+1][2] = self.score_list[i][1]
+            self.board[i+1][3] = self.score_list[i][2]
+
         return index
 
     def small_screen_iddle_append(self):
@@ -1535,11 +1510,11 @@ class Game:
             self.init_prolog()
             print(f'Is game really over? {self.env.unwrapped.last_observation[14][0]}') #type: ignore
         self.sound.files['game'].fadeout(1000)
-        
+
         lvl = int(self.env.unwrapped.last_observation[15][0]) #type: ignore
         #score,lvl = self.get_final_stats()
         
-        if self.board.is_highscore(self.score):
+        if self.board.is_highscore(self.score, lvl):
             if action == 1:
                 self.highscore(self.score,lvl)
             else:
@@ -1549,7 +1524,7 @@ class Game:
 
         #debug to see if game really ended
         pygame.time.wait(1000)
-        self.game_over()
+        self.game_over(self.env.unwrapped.last_observation[14][0])
 
     def quit_game(self):
         pygame.quit()
@@ -1662,43 +1637,47 @@ class Game:
         
         return action,action_trigger,action_ticks,running,selection,menu
 
-    def get_end_reason(self):
-        text = "You "
-        end_reason:nle._pynethack.nethack.game_end_types = self.env.unwrapped.nethack.how_done() #type:ignore
-        match (end_reason.value):
-            case 0:
-                text += 'died.'
-            case 1: 
-                text += 'choked.'
-            case 2: 
-                text += 'were poisened.'
-            case 3: 
-                text += 'starved.'
-            case 4: 
-                text += 'drowned.'
-            case 5: 
-                text += 'burned.'
-            case 6: 
-                text += 'dissolved.'
-            case 7: 
-                text += 'were crushed.'
-            case 8: 
-                text += 'were stonned.'
-            case 9: 
-                text += 'were turned into slime.'
-            case 10:
-                text += 'were genocided.'
-            case 11: 
-                text += 'panicked.'
-            case 12: 
-                text += 'were tricked.'
-            case 13: 
-                text += 'quit.'
-            case 14: 
-                text += 'escaped.'
-            case 15:
-                text += 'Ascended.'
-        rect = self.images.surfaces['big_monitor_fs_surface'].get_rect()
+    def get_end_reason(self,isgameover):
+        if not isgameover:
+            text = "Out of Actions"
+        else:
+            text = "You "
+            end_reason:nle._pynethack.nethack.game_end_types = self.env.unwrapped.nethack.how_done() #type:ignore
+            match (end_reason.value):
+                case 0:
+                    text += 'died.'
+                case 1: 
+                    text += 'choked.'
+                case 2: 
+                    text += 'were poisened.'
+                case 3: 
+                    text += 'starved.'
+                case 4: 
+                    text += 'drowned.'
+                case 5: 
+                    text += 'burned.'
+                case 6: 
+                    text += 'dissolved.'
+                case 7: 
+                    text += 'were crushed.'
+                case 8: 
+                    text += 'were stonned.'
+                case 9: 
+                    text += 'were turned into slime.'
+                case 10:
+                    text += 'were genocided.'
+                case 11: 
+                    text += 'panicked.'
+                case 12: 
+                    text += 'were tricked.'
+                case 13: 
+                    text += 'quit.'
+                case 14: 
+                    text += 'escaped.'
+                case 15:
+                    text += 'Ascended.'
+        bg_clean = pygame.Surface.copy(self.images.surfaces['big_monitor_fs_surface'])
+        rect = bg_clean.get_rect()
         x,y = rect.center
         txt_surface = self.graphics.render_text(text,20,"#F8F8FF")
         w = txt_surface.get_width()
@@ -1706,7 +1685,7 @@ class Game:
         posx = x-w 
         posy = y-h
 
-        return txt_surface,(posx+90,posy+20)   
+        return txt_surface,(posx+120,posy+20)   
     
     def highscore(self,score,lvl):
         self.sound.files['highscore'].play()
@@ -1786,14 +1765,14 @@ class Game:
         
         self.board.insert_name(name,index)
 
-    def game_over(self):        
+    def game_over(self,isgameover):        
         self.controller.controller_set['special'].set_iddle('space')
         self.sound.files['game_over'].play(fade_ms=1000).set_volume(0.5)
         self.graphics.game_over_screen()
         #get reason for game_over
         #end_reason:nle= self.env.unwrapped.nethack.how_done() #type: ignore
         # "play_again_pos": [437,259],
-        end_reason = self.get_end_reason()
+        end_reason = self.get_end_reason(isgameover)
         #txt_surface = self.graphics.render_text(txt,20,"#F0EAD6")
         
         #assets = [(self.images.images['play_again'],(0,0)),(txt_surface,(0,100))]
@@ -1932,13 +1911,22 @@ class Game:
 
 # indicador das keys para os botões
 # overlay togle para ver as keys/acções
-# hp bar
 
 # ver reinforcement learning - dig tá a ver
 # arranjar o prolog todo lol
 #   - é preciso ver que a fome tá num sitio diferente daquele que inicialmente esperado. usar o mesmo que ta a ser usado no interface
-#   - as diagonais estão só a ser realizadas dentro de corredores, de tile de chão de corredor para tile de chão de corredor
 #   - não está a empurrar boulders, boulders não estão na valid list.
-
+#   - o leaderboard está off a inserir nomes no scoreboard              --- isto parece já estar direito, só não façam perguntas sobre o off by one.
+#   - no caso de TP, não há qualquer tipo de aviso que aconteceu, fica stuck em confirming step
+#   - confirmar se está a dar handle ao caso de: do you really want to hit _monster? 
+#   - ver qual é o range dos items e deixa-lo usar isso como floor 
+#   - agora vai contra as paredes. top.
+#   - fazer os items walkable
+#   - check message overlap on game over screen
+#   - está a passar em traps all willy-nilly
+#   - não termina quando fica sem moves
+#   - o confirm step tal como está, não funciona, ele consegue não responder às perguntas mas depois insiste no mesmo move. 
+#   - o jogo não está a terminar quando há um gameover, por exemplo a dar um pontape numa porta, depois crash
+#   - incluir as mensagens do jogo nas mensagens que passam no ecrã pequeno
 if __name__ == '__main__':
     Game()

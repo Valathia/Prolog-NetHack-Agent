@@ -27,7 +27,7 @@ code(2375, 'door').                 % +     Door Closed Horizontal
 code(2376, 'ironbars').
 code(2377, 'tree').
 code(2378, 'floor').               % .     floor you can see
-code(2379, 'floornovis').          % .     floor you've discoverd but can't currently see
+code(2379, 'floor').          % .     floor you've discoverd but can't currently see
 code(2380, 'floortunel').          % #     floor tile between rooms
 code(2381, 'floortunel').          % #       Likely also floor or a passage
 code(2382, 'stairsup').            % <     staircase going up

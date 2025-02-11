@@ -6,12 +6,12 @@
 :- consult('./utility.pl').
 
 
-execute_path(TranslatedMatrix,[],Action,GameOver,false,Game):-
-    pick_protocol(TranslatedMatrix, Action,[],Game,GameOver).
+execute_path(TranslatedMatrix,[],Action, Game):-
+    pick_protocol(TranslatedMatrix, Action,[],Game).
 
-execute_path(TranslatedMatrix,[(X1,Y1),(X2,Y2)], Action, GameOver, false,Game):- 
+execute_path(TranslatedMatrix,[(X1,Y1),(X2,Y2)], Action, Game):- 
     format('Last two moves, time to pick a protocol. ~n'),
-    pick_protocol(TranslatedMatrix, Action,[(X1,Y1),(X2,Y2)],Game,GameOver).
+    pick_protocol(TranslatedMatrix, Action,[(X1,Y1),(X2,Y2)],Game).
 
 /**
  * Recursive predicate to execute a series of actions based on an A* pathfinding result.
@@ -23,26 +23,29 @@ execute_path(TranslatedMatrix,[(X1,Y1),(X2,Y2)], Action, GameOver, false,Game):-
  */
 
 
-execute_path(TranslatedMatrix,[(X1,Y1),(X2,Y2)|T], Action, GameOver, false, Game):-
+execute_path(TranslatedMatrix,[(X1,Y1),(X2,Y2)|T], Action, Game):-
     format('Executing Move ~w -> ~w ~n ',[(X1,Y1),(X2,Y2)]),
+    get_elem(TranslatedMatrix,X2,Y2,El_print),
+    Res = valid(El_print),
+    format('~w, ~w is ~w and is ~w valid ~n',[X2,Y2,El_print,Res]),
     MOVE_X is X2 - X1,
     MOVE_Y is Y2 - Y1,
     move_py(MOVE_X,MOVE_Y,Move), %translates MOVE_X & MOVE_Y into a direction
-    move(Move, Game, TempGameOver_py),  %moves in the corresponding direction
-    truth_val(TempGameOver_py,TempGameOver),
+    move(Move, Game, GameOver_py),  %moves in the corresponding direction
+    truth_val(GameOver_py,_),
     get_info_from_env(Game, _, Message, _, _, InQuestion, _, _),
     check_mishap(InQuestion, Game),
     (check_sub(Message,'can\'t move diagonally'),
     diag_correct(TranslatedMatrix,Move,X1,Y1,NewHead),
     append(NewHead,[(X2,Y2)|T],NewList),
-    execute_path(TranslatedMatrix,NewList, Action, GameOver, TempGameOver, Game),!;
-    confirm_step(X1,Y1,X2,Y2,Game,TempGameOver), %confirms if the player is in the new square, if he is not, redo the action
-    execute_path(TranslatedMatrix,[(X2,Y2)|T], Action, GameOver, TempGameOver, Game),!;
-    execute_path(TranslatedMatrix,[(X1,Y1),(X2,Y2)|T], Action, GameOver, TempGameOver, Game)). %,!; %execute next action
+    execute_path(TranslatedMatrix,NewList, Action, Game),!;
+    confirm_step(X1,Y1,X2,Y2,Game), %confirms if the player is in the new square, if he is not, redo the action
+    execute_path(TranslatedMatrix,[(X2,Y2)|T], Action, Game),!;
+    execute_path(TranslatedMatrix,[(X1,Y1),(X2,Y2)|T], Action, Game)). %,!; %execute next action
     % is_game_running(DONE,false),
     % WORLD_DATA is TEMP_DATA.
 
-execute_path(_,_,_,true,true,_).
+execute_path(_,_,_,_).
 
 /**
  * Calculates the Manhattan distance between two points.
@@ -110,9 +113,10 @@ neighbors((X, Y), Matrix, Neighbors, _):-
                 (NX is X + 1, NY is Y + 1);
                 (NX is X - 1, NY is Y - 1);
                 (NX is X + 1, NY is Y - 1);
-                (NX is X - 1, NY is Y + 1)              %,get_elem(Matrix,NX,NY,Elem),is_floor(Elem) no more need for this
+                (NX is X - 1, NY is Y + 1)
+                %,get_elem(Matrix,NX,NY,Elem),is_floor(Elem) no more need for this
                 ),
-            AllNeighbors),
+                AllNeighbors),
     include({Matrix}/[Pos]>>in_bounds(Pos, Matrix), AllNeighbors, InBoundsNeighbors),
     include({Matrix}/[Pos]>>check_valid(Pos, Matrix), InBoundsNeighbors, Neighbors).
 
@@ -128,8 +132,6 @@ neighbors((X, Y), Matrix, Neighbors, _):-
 %             AllNeighbors),
 %     include({Matrix}/[Pos]>>in_bounds(Pos, Matrix), AllNeighbors, InBoundsNeighbors),
 %     include({Matrix}/[Pos]>>check_valid(Pos, Matrix), InBoundsNeighbors, Neighbors).
-
-
 
 build_edge(_,[]).
 
@@ -272,19 +274,27 @@ get_weight((_,Y1),(_,Y2),G):-
  * @param GOAL_LIST the resulting list of all available objectives
  */
 
-% create_pairs([],_,_,ManList,ManList).
+create_pairs([],_,_,ManList,ManList).
 
-% create_pairs([(X,Y)|T],START_R,START_C,[(D,(X,Y))|CurList],ManList):-
-%     manhattan((START_R, START_C), (X, Y), D),
-%     create_pairs(T,START_R,START_C,CurList,ManList).
+create_pairs([(X,Y)|T],START_R,START_C,[(D,(X,Y))|CurList],ManList):-
+    manhattan((START_R, START_C), (X, Y), D),
+    create_pairs(T,START_R,START_C,CurList,ManList).
 
-% get_pairs([],Pairs,Pairs).
+get_pairs([],Pairs,Pairs).
 
-% get_pairs([((_,X,Y))|T], [(X,Y)|CurList],Pairs):-
-%     get_pairs(T,CurList,Pairs).
+get_pairs([((_,X,Y))|T], [(X,Y)|CurList],Pairs):-
+    get_pairs(T,CurList,Pairs).
+
+order_goals(List,Start_R,Start_C,Sorted_List):-
+    create_pairs(List,Start_R, Start_C,ManList,[]),
+    format('Manhatan List: -~w ~n',[ManList]),
+    sort(ManList, SortedGoalList),
+    format('Manhatan List Sorted: -~w ~n',[SortedGoalList]),
+    get_pairs(SortedGoalList,Sorted_List,[]).
+
 
 % order_goals(MATRIX,START_R,START_C,GOAL_LIST):-
-%     findall((X,Y),(goals(ELEM_GOAL),get_elem(MATRIX, X, Y, ELEM_GOAL),\+locked(X,Y),\+soft_lock(X,Y),\+floor_locked(X,Y)),L),
+%     findall((X,Y),(goals(ELEM_GOAL),get_elem(MATRIX, X, Y, ELEM_GOAL),(edge((X,Y),_,_);edge(_,(X,Y),_)),\+locked(X,Y),\+soft_lock(X,Y),\+floor_locked(X,Y)),L),
 %     findall((X,Y),(member((X,Y),L),once(X,Y)),O),
 %     findall((X,Y),(member((X,Y),L),get_elem(MATRIX, X, Y, 'stairsdown')),Stairs),
 %     findall((X,Y),(member((X,Y),L),\+member((X,Y),O),\+member((X,Y),Stairs)),List),
@@ -314,19 +324,28 @@ get_objectives(MATRIX, GOAL_LIST):-
     append(H,O,GOAL_LIST).
 
 
-get_goals_2(Matrix, Goal_List):-
+get_goals_2(Matrix, Start_R, Start_C, Goal_List):-
     findall((X,Y),(get_elem(Matrix, X, Y, 'stairsdown'),(edge((X,Y),_,_);edge(_,(X,Y),_))),Priority),
     findall((X,Y),(goals(Elem_Goal),get_elem(Matrix, X, Y, Elem_Goal),(edge((X,Y),_,_);edge(_,(X,Y),_)),\+locked(X,Y),\+soft_lock(X,Y),\+floor_locked(X,Y),\+member((X,Y),Priority)),L),
     findall((X,Y),(member((X,Y),L),once(X,Y),\+member((X,Y),Priority)),O),
     findall((X,Y),(member((X,Y),L),floor_once(X,Y),\+member((X,Y),Priority),\+member((X,Y),O)),FO),
     findall((X,Y),(member((X,Y),L),floor_twice(X,Y),\+member((X,Y),Priority),\+member((X,Y),O),\+member((X,Y),FO)),FT),
-    %findall((X,Y),(member((X,Y),L),get_elem(Matrix, X, Y, 'floor'),length(FL,5)),FL),!,
-    append(FO,O,FOO),
-    append(FOO,FT,AllVisited),
-    %append(FOOFT,FL,AllVisited),
-    findall((X,Y),(member((X,Y),L),\+member((X,Y),AllVisited)),H),
-    append(Priority,H,Head),
-    append(Head,AllVisited,Goal_List).
+    % findall((X,Y),(member((X,Y),L),get_elem(Matrix, X, Y, 'floor'),length(FL,5)),FL),!,
+    order_goals(O,Start_R,Start_C,Sort_O),
+    order_goals(FO,Start_R,Start_C,Sort_FO),
+    order_goals(FT,Start_R,Start_C,Sort_FT),
+    append(Sort_FO,Sort_O,FOO),
+    append(FOO,Sort_FT,FOOFT),
+    format('FOOFT - ~w ~n',[FOOFT]),
+    % append(FOOFT,FL,AllVisited),
+    findall((X,Y),(member((X,Y),L),\+member((X,Y),FOOFT),\+get_elem(Matrix,X,Y,'floor')),H),
+    findall((X,Y),(member((X,Y),L),\+member((X,Y),FOOFT),get_elem(Matrix,X,Y,'floor')),Floor_List),
+    order_goals(H,Start_R,Start_C,Sort_H),
+    order_goals(Floor_List,Start_R,Start_C,Sort_Floor),
+    append(Priority,Sort_H,Head),
+    format('Head - ~w ~n',[Head]),
+    append(Head,FOOFT,Head_2),
+    append(Head_2,Sort_Floor,Goal_List).
 
 get_objectives_2(Matrix, Goal_List):-
     findall((X,Y),(get_elem(Matrix, X, Y, 'floor'),length(Goal_List,5),\+locked(X,Y),\+soft_lock(X,Y),\+floor_locked(X,Y)),Goal_List).
@@ -342,29 +361,30 @@ get_objectives_2(Matrix, Goal_List):-
  * @param SOL List of coordinates representing the path from (START_R, START_C) to (END_R, END_C).
  */
 
-get_path(TranslatedMatrix,Start_R,Start_C,[],Elem_Goal,Sol,Game,Reason):- 
-    py_call(prolog_gui:output_text('All out of options - retract','',Game)),
-    format('All out of options - retract ~n'),
+get_path(_,_,_,[],_,_,Game):- 
+    py_call(prolog_gui:output_text('Get Path: All out of options - retract','',Game)),
+    format('Get Path: All out of options - retract ~n'),
     wayback(_,_),
-    retractall(wayback(_,_)),
-    retractall(edge(_,_,_)),
-    build_graph((Start_R,Start_C),TranslatedMatrix),!,
-    get_next_move(TranslatedMatrix, Start_R, Start_C, Elem_Goal, Sol, Game, Reason).
+    retractall(wayback(_,_)).
+    % retractall(edge(_,_,_)),
+    % build_graph((Start_R,Start_C),TranslatedMatrix),!,
+    % get_next_move(TranslatedMatrix, Start_R, Start_C, Elem_Goal, Sol, Game, Reason).
 
-get_path(_,_,_,[],_,[],_,_):- 
-    \+wayback(_,_), 
-    format('All out of options - No more moves left ~n'),
-    get_next_move(_,_,_,_,[],_,'No more Goals').
+% get_path(_,_,_,[],'no goals',[],_,'No more Goals'):- 
+%     \+wayback(_,_), 
+%     format('Get Path: All out of options - No more moves left ~n').
+%     %get_next_move(_,_,_,'no goals',[],_,'No more Goals').
 
 
-get_path(TranslatedMatrix, Start_R, Start_C, [(X,Y)|T], Elem_Goal, Sol, Game,Reason):-
+
+get_path(TranslatedMatrix, Start_R, Start_C, [(X,Y)|T], Elem_Goal, Sol, Game):-
     py_call(prolog_gui:output_text('Searching for path...','',Game)),
     format('Searching for path... ~n'),
     get_elem(TranslatedMatrix,X,Y,Elem_Goal),
     a_star((Start_R,Start_C),(X,Y), TranslatedMatrix, Sol, Game),!;
     % length(SOL,L),
     % L >= 2,!;
-    get_path(TranslatedMatrix, Start_R, Start_C, T, Elem_Goal, Sol, Game, Reason).
+    get_path(TranslatedMatrix, Start_R, Start_C, T, Elem_Goal, Sol, Game).
 
 /**
  * Determines the next move action based on the current game state and objectives.
@@ -378,14 +398,29 @@ get_path(TranslatedMatrix, Start_R, Start_C, [(X,Y)|T], Elem_Goal, Sol, Game,Rea
 
 
 %it's not ending properly. Cycles when Goal list is empty ...
-get_next_move(TranslatedMatrix, Start_R, Start_C, Elem_Goal, Sol, Game,Reason):-
-    get_goals_2(TranslatedMatrix,Goal_List),
+get_next_move(TranslatedMatrix, Start_R, Start_C, Elem_Goal, Sol, Game):-
+    get_goals_2(TranslatedMatrix, Start_R, Start_C, Goal_List),
     format('GOAL LIST: ~w ~n',[Goal_List]),
+    length(Goal_List,N),
+    N > 0,
     %py_call(prolog_gui:output_text('GOAL LIST: ',GOAL_LIST,GAME)),
-    get_path(TranslatedMatrix, Start_R, Start_C, Goal_List, Elem_Goal, Sol, Game,Reason).
+    get_path(TranslatedMatrix, Start_R, Start_C, Goal_List, Elem_Goal, Sol, Game).
 
+get_next_move(TranslatedMatrix, Start_R, Start_C, Elem_Goal, Sol, Game):-
+    py_call(prolog_gui:output_text('Get Next Move: All out of options - retract','',Game)),
+    format('Get Next Move: All out of options - retract ~n'),
+    retractall(wayback(_,_)),
+    retractall(edge(_,_,_)),
+    build_graph((Start_R,Start_C),TranslatedMatrix),!,
+    get_goals_2(TranslatedMatrix,Start_R, Start_C, Goal_List),
+    format('NEW  GOAL LIST: ~w ~n',[Goal_List]),
+    length(Goal_List,N),
+    N > 0,
+    get_path(TranslatedMatrix, Start_R, Start_C, Goal_List, Elem_Goal, Sol, Game).
 
-get_next_move(_,_,_,_,[],_,_).
+get_next_move(_,_,_,'no goals',[],_).
+
+get_next_move(_,_,_,_,[],_).
 
 /**
  * Calculates the best action to take based on game state and goals.
@@ -402,25 +437,20 @@ check_goal(Matrix, Goal, Goal_list):-
 check_action(Matrix,Goal,Goal_list):-
     check_goal(Matrix,Goal,Goal_list),
     length(Goal_list,N),
-    N =\= 0.
+    format('Goal checked: ~w ~n',[Goal]),
+    N =\= 0,
+    format('GOAL LIST: ~w ~n',[Goal_list]).
 
-% calculate_best_action( Game, Action, Goal):-
-%     get_info_from_env(Game, GlyphMatrix, _, Stats, _, _, _, _),
-%     translate_glyphs(GlyphMatrix, TranslatedMatrix),                                                  %hunger
-%     get_Player_info(Stats, Pos_Col, Pos_Row, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _),
-%     %get_elem(TRANSLATED_MATRIX,X,Y,ELEM_GOAL),
-%     %print_matrix(TRANSLATED_MATRIX,0),
-%     get_next_move(TranslatedMatrix, Pos_Row, Pos_Col, Goal, Action, Game).
 
 %combat
-calculate_best_action(Game, TranslatedMatrix, Pos_Row, Pos_Col, _, Path, Action,_):-
+calculate_best_action(Game, TranslatedMatrix, Pos_Row, Pos_Col, _, Path, Action):-
     check_action(TranslatedMatrix,'monster',[(X,Y)|_]),
     format('There is a Monters nearby ~n'),
     goal_action('monster',Action),
     a_star((Pos_Row,Pos_Col),(X,Y), TranslatedMatrix, Path, Game),!.
 
 %eat
-calculate_best_action(Game, TranslatedMatrix, Pos_Row, Pos_Col, Hunger, Path,Action,_):-
+calculate_best_action(Game, TranslatedMatrix, Pos_Row, Pos_Col, Hunger, Path, Action):-
     Hunger =< 500,
     format('Im Hungry... ~n'),
     check_action(TranslatedMatrix,'food',[(X,Y)|_]),
@@ -429,13 +459,13 @@ calculate_best_action(Game, TranslatedMatrix, Pos_Row, Pos_Col, Hunger, Path,Act
 
 %use messages to eat from inventory, need to split message to get INV letters for food
 %pickup food
-calculate_best_action(Game, TranslatedMatrix, Pos_Row, Pos_Col, _, Path, Action,_):-
+calculate_best_action(Game, TranslatedMatrix, Pos_Row, Pos_Col, _, Path, Action):-
     check_action(TranslatedMatrix,'food',[(X,Y)|_]),
     format('Uuh! Piece of Candy! ~n'),
     goal_action('food',Action),
     a_star((Pos_Row,Pos_Col),(X,Y), TranslatedMatrix, Path, Game),!.
 %pickup gold
-calculate_best_action(Game, TranslatedMatrix, Pos_Row, Pos_Col, _, Path, Action,_):-
+calculate_best_action(Game, TranslatedMatrix, Pos_Row, Pos_Col, _, Path, Action):-
     check_action(TranslatedMatrix,'gold',[(X,Y)|_]),
     format('Good as Gold ~n'),
     goal_action('gold',Action),
@@ -443,16 +473,17 @@ calculate_best_action(Game, TranslatedMatrix, Pos_Row, Pos_Col, _, Path, Action,
 
 %need something to tell action based on goal
 %explore
-calculate_best_action(Game, TranslatedMatrix, Pos_Row, Pos_Col, _, Path, Action, Reason):-
-    get_next_move(TranslatedMatrix, Pos_Row, Pos_Col, Elem_Goal, Path, Game,Reason),
+calculate_best_action(Game, TranslatedMatrix, Pos_Row, Pos_Col, _, Path, Action):-
+    get_next_move(TranslatedMatrix, Pos_Row, Pos_Col, Elem_Goal, Path, Game),
     goal_action(Elem_Goal,Action),
     format('Goal chosen: ~w ~n ', [Elem_Goal]),
     format('We are going exploring! ~w ~n',[Action]).
 
-calculate_best_action(_,_,_,_,_,[],'quit',_).
+
+calculate_best_action(_,_,_,_,_,[],'quit').
 
 %add an if on top of stairs  go down
-get_best_action(TranslatedMatrix, Game,Path,Action,Reason):-
+get_best_action(TranslatedMatrix, Game,Path,Action):-
     format('Get Best Action ~n'),
     retractall(edge(_,_,_)),
     get_info_from_env(Game, _, _, _, _, InQuestion, _, Hunger),
@@ -460,7 +491,7 @@ get_best_action(TranslatedMatrix, Game,Path,Action,Reason):-
     %translate_glyphs(GlyphMatrix, TranslatedMatrix),  
     get_player_pos(Game, Pos_Row, Pos_Col),
     build_graph((Pos_Row,Pos_Col),TranslatedMatrix),
-    calculate_best_action(Game, TranslatedMatrix, Pos_Row, Pos_Col, Hunger, Path, Action,Reason),!.
+    calculate_best_action(Game, TranslatedMatrix, Pos_Row, Pos_Col, Hunger, Path, Action),!.
 
 /**
  * Renders the game environment by calling a Python function.
@@ -478,44 +509,26 @@ renderMap(ENV):- sleep(0.25), tty_clear, py_call(ENV:render()), sleep(0.25).
  * @param FIRST_MOVE Flag indicating if this is the first move.
  * @param GAME_RUNNING Flag indicating if the game is still running.
  */
-game_run(_, true, Reason):- format('GAME OVER: ~w~n', [Reason]).
+game_run(_, true):- format('GAME OVER ~n').
 
-game_run(Game, false, Reason):- 
+game_run(Game, false):- 
     format('Game is Running ~n'),
     get_info_from_env(Game, GlyphMatrix, _, _, _, _, _, _),
-    translate_glyphs(GlyphMatrix, TranslatedMatrix),  
-    get_best_action(TranslatedMatrix, Game,Path,Action,Reason),!,
+    translate_glyphs(GlyphMatrix, TranslatedMatrix),
+    %retractall(edges(_,_,_)), 
+    get_best_action(TranslatedMatrix, Game,Path,Action),!,
     format('Path for Action: ~w ~w ~n', [Action,Path]),
-    execute_path(TranslatedMatrix, Path, Action, GameOver, false, Game),
-    format('Is Game Over ? ~w ~n', [GameOver]),
-    game_run(Game, GameOver, Reason).
+    execute_path(TranslatedMatrix, Path, Action, Game),
+    %format('Is Game Over ? ~w ~n', [GameOver]),
+    is_over(Over),
+    game_run(Game, Over).
 
-% game_run(Game, false, _):- 
-%     get_best_action(Game,[],_),
-%     py_call(prolog_gui:output_text('No more moves left','',Game)), 
-%     format('Game_run:No more moves left ~n'),
-%     %execute_action(ENV, ACTION, GOAL, WORLD_DATA),
-%     game_run(_,true,'no best action').
-
-/**
- * Initializes the game environment by creating a new instance and resetting it.
- * This predicate initializes the environment for the NetHackScore-v0 game.
- *
- * @param ENV The Python environment object to interact with the game environment.
- *            It should be instantiated before calling this predicate.
- */
-/* change this function to call another python function that will create the env env_init() */
-% game_innit(ENV):- py_call(gym:make("NetHackScore-v0"), ENV),
-% py_call(ENV:reset()).
-%functio not currently in use, ENV is being created in python and passed onto gameStart directly.
-% game_innit(ENV) :- 
-%     py_call(prolog_gui:env_init(),ENV), 
-%     py_call(prolog_gui:start_game(ENV)).
 
 /**
  * Starts the game environment and initiates the game loop.
  */
 gameStart(Game):- %game_innit(ENV),
     %move('_SEARCH_', GAME, WORLD_DATA),
-    game_run(Game, false, _).
+    asserta(is_over(false)),
+    game_run(Game, false).
     %nb_setval(game,GAME).
