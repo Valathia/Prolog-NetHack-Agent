@@ -47,7 +47,7 @@ valid('horopendrawbridge').
 valid('vertcloseddrawbridge').
 valid('horcloseddrawbdrige').
 valid('food').
-%valid('boulder'). --- o boulder pode ser goal mas não caminho, pode não dar para empurrar e dá asneira
+valid('boulder'). % o boulder pode ser goal mas não caminho, pode não dar para empurrar e dá asneira
 
 intact_door('door').
 intact_door('doorop').
@@ -68,7 +68,7 @@ goals('door').
 goals('doorop').
 goals('passage').
 goals('floortunel').
-%goals('boulder').
+goals('boulder').
 goals('floor').
 
 goal_action('monster','combat').
@@ -81,6 +81,7 @@ goal_action('doorop','The door opens.').
 goal_action('passage','The door opens.').
 goal_action('floortunel','explore').
 goal_action('floor','explore').
+goal_action('boulder','push boulder').
 goal_action('no goals','quit').
 
 is_floor('floortunel').
@@ -367,7 +368,7 @@ get_info_from_env(Game, GlyphMatrix, Message, Stats, GameOver, InQuestion, Stair
 
 
 confirm_step(X1,Y1,X2,Y2,Game):-
-    format('Confirming Step ~n '),
+    %format('Confirming Step ~n '),
     get_player_pos(Game,ROW,COL),
     X2 == ROW,
     Y2 == COL,
@@ -393,7 +394,7 @@ confirm_step(X1,Y1,X2,Y2,Game):-
 % instead of just doing the extra step, we add the new step to the path and go back to
 % the main executing function
 diag_correct(TranslatedMatrix, Move, X1,Y1,[(X1,Y1),NewPos]):-
-    format('Correcting Diagonal ~n'),
+    %format('Correcting Diagonal ~n'),
     split_diag(Move,Comp_1,Comp_2),
     (diag_move(TranslatedMatrix,Move,X1,Y1,Comp_1,NewPos);
     diag_move(TranslatedMatrix,Move,X1,Y1,Comp_2,NewPos)).

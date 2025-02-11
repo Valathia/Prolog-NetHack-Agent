@@ -61,11 +61,11 @@ code(2409, 'trap').
 code(2410, 'trap').
 code(2411, 'trap').
 code(2412, 'trap').
-code(2413, 'hole').
-code(2414, 'trapdoor').
-code(2415, 'tptrap').
-code(2416, 'lvltptrap').
-code(2417, 'magicportal').
+code(2413, 'trap').         %hole
+code(2414, 'trap').     %trapdoor
+code(2415, 'trap').       %tptrap
+code(2416, 'trap').    %lvltptrap
+code(2417, 'trap').  %magicportal
 code(2418, 'trap').
 code(2419, 'trap').
 code(2420, 'trap').

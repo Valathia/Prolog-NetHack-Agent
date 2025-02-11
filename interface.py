@@ -949,7 +949,7 @@ class Leaderboard:
             self.board[i+1][2] = self.score_list[i][1]
             self.board[i+1][3] = self.score_list[i][2]
 
-        return index
+        return index+1
 
     def small_screen_iddle_append(self):
         
@@ -1115,8 +1115,8 @@ class Graphics:
         f.write(str(msg))
         f.close()
         #50, 10
-        if not mode:
-            self.output_text(strmsg)
+        #if not mode:
+        self.output_text(strmsg)
         self.sound.msg_sfx(strmsg)
         return game_msg
 
@@ -1446,7 +1446,7 @@ class Game:
         # "NetHackEat",
         # "NetHackScout",
         # "NetHackChallenge", actions=navigate_actions #    confirm_step(ENV,DATA,X2,Y2,ACTION,GAME)
-        env = gym.make("NetHackScore-v0", actions=navigate_actions)
+        env = gym.make( "NetHackScore-v0", actions=navigate_actions)
         #env.print_action_meanings()´
 
         env.reset()
@@ -1685,7 +1685,7 @@ class Game:
         posx = x-w 
         posy = y-h
 
-        return txt_surface,(posx+120,posy+20)   
+        return txt_surface,(posx+100,posy+20)   
     
     def highscore(self,score,lvl):
         self.sound.files['highscore'].play()
@@ -1915,18 +1915,13 @@ class Game:
 # ver reinforcement learning - dig tá a ver
 # arranjar o prolog todo lol
 #   - é preciso ver que a fome tá num sitio diferente daquele que inicialmente esperado. usar o mesmo que ta a ser usado no interface
-#   - não está a empurrar boulders, boulders não estão na valid list.
 #   - o leaderboard está off a inserir nomes no scoreboard              --- isto parece já estar direito, só não façam perguntas sobre o off by one.
 #   - no caso de TP, não há qualquer tipo de aviso que aconteceu, fica stuck em confirming step
-#   - confirmar se está a dar handle ao caso de: do you really want to hit _monster? 
+#   - confirmar se está a dar handle ao caso de: do you really want to hit _monster? Está handle, mas diz não e fica stuck se não houver mais objectivos
 #   - ver qual é o range dos items e deixa-lo usar isso como floor 
 #   - agora vai contra as paredes. top.
 #   - fazer os items walkable
-#   - check message overlap on game over screen
-#   - está a passar em traps all willy-nilly
 #   - não termina quando fica sem moves
-#   - o confirm step tal como está, não funciona, ele consegue não responder às perguntas mas depois insiste no mesmo move. 
-#   - o jogo não está a terminar quando há um gameover, por exemplo a dar um pontape numa porta, depois crash
-#   - incluir as mensagens do jogo nas mensagens que passam no ecrã pequeno
+
 if __name__ == '__main__':
     Game()
